@@ -977,14 +977,13 @@ Nếu không đủ thời gian, chỉ cần báo cáo dạng bảng.
 
 # 17. TEAM STRUCTURE
 
-## MEMBER 01 — LEADER
+## MEMBER 01 — TV01 / LEADER
 
 ### Owner
 
 - Architecture.
 - GitHub.
 - Authentication.
-- Dashboard.
 - Integration.
 - Database coordination.
 - Code review.
@@ -993,11 +992,11 @@ Nếu không đủ thời gian, chỉ cần báo cáo dạng bảng.
 
 ### Expected contribution
 
-Khoảng 25%.
+Khoảng 21 task: giữ ownership foundation, authentication, integration và release; không ôm toàn bộ dashboard, tài liệu hoặc slide.
 
 ---
 
-## MEMBER 02 — CUSTOMER & ROOM
+## MEMBER 02 — TV02 / CUSTOMER & ROOM
 
 ### Owner
 
@@ -1013,14 +1012,16 @@ Khoảng 25%.
 - Search/filter.
 - Repository.
 - Service.
+- Shared model/repository contract cho Customer/Room.
+- Room statistics trên dashboard.
 
 ### Expected contribution
 
-Khoảng 25%.
+Khoảng 21 task.
 
 ---
 
-## MEMBER 03 — BOOKING
+## MEMBER 03 — TV03 / BOOKING & CHECK-IN/OUT
 
 ### Owner
 
@@ -1037,40 +1038,42 @@ Khoảng 25%.
 - Repository.
 - Service.
 - Tests.
+- Check-in / Check-out workflow.
+- Booking statistics trên dashboard.
 
 ### Expected contribution
 
-Khoảng 25%.
+Khoảng 22 task.
 
 ---
 
-## MEMBER 04 — CHECK-IN / CHECK-OUT / PAYMENT
+## MEMBER 04 — TV04 / PAYMENT, UI & PRESENTATION
 
 ### Owner
 
-- Check-in.
-- Check-out.
 - Payment.
 - Invoice.
-- Basic report.
+- UI design system và reusable controls.
+- Dashboard layout, revenue statistics và report screen.
+- Screenshots, documentation visual và slide.
 
 ### Deliverables
 
 - Forms.
 - Services.
 - Calculation.
-- State transitions.
 - Tests.
+- Design assets và presentation.
 
 ### Expected contribution
 
-Khoảng 25%.
+Khoảng 20 task.
 
 ---
 
 # 18. IMPORTANT TEAM RULE
 
-Phân chia 25% chỉ là **khung trách nhiệm**, không phải con số dùng để "chia điểm" một cách máy móc.
+Phân chia ownership trong timeline là **khung trách nhiệm**, không phải con số dùng để "chia điểm" một cách máy móc.
 
 Thực tế contribution sẽ được chứng minh bằng:
 
@@ -1107,14 +1110,18 @@ feature/booking
 feature/checkin
 feature/payment
 feature/dashboard
+feature/foundation
+feature/ui-system
 ```
+
+`feature/navigation` được gộp vào `feature/auth`. Không cần tạo `release/v1.0`; phát hành cuối kỳ dùng Pull Request `develop → main`. Các branch `docs/<topic>` chỉ tạo khi bắt đầu làm tài liệu hoặc slide.
 
 ## Flow
 
 ```text
 Issue
  ↓
-Feature branch
+Task branch (ưu tiên branch ngắn theo task)
  ↓
 Code
  ↓
@@ -1126,9 +1133,9 @@ Pull Request
  ↓
 Review
  ↓
-Merge develop
+Merge vào develop
  ↓
-Release main
+Pull Request develop → main khi bản tích hợp ổn định
 ```
 
 ---
@@ -1417,23 +1424,18 @@ Một task chỉ được xem là DONE khi:
 
 # 25. TIMELINE
 
-## PHASE 1 — 01/10 → 05/10
+## PHASE 1 — 11/10 → 14/10
 
-### Design Freeze
+### Foundation Contract
 
 Deliverables:
 
 ```text
-☐ Project Blueprint
-☐ Scope
-☐ Use Case
-☐ User Flow
-☐ ERD
-☐ Architecture
-☐ Wireframes
-☐ GitHub
-☐ Task board
-☐ Team assignments
+☐ Scope, Use Case và user flow được chốt
+☐ ERD và schema v1 được chốt bởi TV01
+☐ Solution/layers/Models/interfaces nền tảng
+☐ UI design system cơ bản
+☐ GitHub branches, task board và ownership file
 ```
 
 ### GATE 1
@@ -1444,10 +1446,11 @@ Không bắt đầu feature lớn nếu:
 - Chưa có architecture.
 - Chưa chia module.
 - Chưa có Git workflow.
+- Schema v1 và Models chưa được TV01 review/merge.
 
 ---
 
-# PHASE 2 — 06/10 → 12/10
+# PHASE 2 — 15/10 → 17/10
 
 ## Foundation
 
@@ -1459,7 +1462,7 @@ Deliverables:
 ☐ SQL Server database
 ☐ Connection
 ☐ Models
-☐ Base repositories
+☐ Base repositories và seed data
 ☐ Login
 ☐ Main Form
 ☐ Navigation
@@ -1481,7 +1484,7 @@ Database
 
 ---
 
-# PHASE 3 — 13/10 → 19/10
+# PHASE 3 — 18/10 → 25/10
 
 ## Core Management
 
@@ -1512,7 +1515,7 @@ Booking saved
 
 ---
 
-# PHASE 4 — 20/10 → 26/10
+# PHASE 4 — 26/10 → 01/11
 
 ## Hotel Operations
 
@@ -1551,7 +1554,7 @@ Available
 
 ---
 
-# PHASE 5 — 27/10 → 02/11
+# PHASE 5 — 02/11 → 06/11
 
 ## UI/UX + Integration
 
@@ -1573,7 +1576,7 @@ Người mới sử dụng hệ thống phải có thể hiểu cách dùng mà 
 
 ---
 
-# PHASE 6 — 03/11 → 09/11
+# PHASE 6 — 07/11 → 10/11
 
 ## Testing & Stabilization
 
@@ -1603,11 +1606,11 @@ Sai trạng thái phòng
 
 ---
 
-# PHASE 7 — 10/11 → 15/11
+# PHASE 7 — 11/11 → 15/11
 
 ## Finalization
 
-Từ thời điểm này:
+Từ 10/11 là **feature freeze**. Từ thời điểm này:
 
 **KHÔNG THÊM FEATURE LỚN.**
 
@@ -1622,6 +1625,14 @@ Chỉ:
 ☐ Presentation
 ☐ Demo script
 ☐ Final GitHub cleanup
+```
+
+### Finalization checkpoints
+
+```text
+11–13/11  Documentation, report, screenshots và slide
+14/11     Tổng duyệt demo/thuyết trình
+15/11     Buffer cuối, release và chốt bản nộp
 ```
 
 ---
