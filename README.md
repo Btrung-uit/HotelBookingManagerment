@@ -25,6 +25,8 @@
 
 Hệ thống được thiết kế nhằm chuẩn hóa quy trình tiếp đón và quản lý khách sạn, ngăn ngừa triệt để các sai sót thường gặp trong quản lý thủ công như trùng lặp lịch phòng, nhầm lẫn trạng thái buồng phòng, sai sót tính toán chi phí hoặc thất thoát doanh thu.
 
+> **Trạng thái hiện tại:** Dự án đang ở giai đoạn lập kế hoạch và thiết lập nền tảng. Các tính năng, sơ đồ và ảnh giao diện bên dưới là phạm vi/định hướng v1.0; chỉ đánh dấu là hoàn thành khi có mã nguồn, script cơ sở dữ liệu và kiểm thử tương ứng trong repository.
+
 ### Chu trình nghiệp vụ chính (Core Operational Flow)
 ```text
 Khách hàng (Customer)
@@ -276,20 +278,24 @@ Dự án được thực hiện bởi nhóm sinh viên **IT008.R12 - Lập trìn
 
 | STT | Họ và Tên | Mã số sinh viên (MSSV) | Vai trò | Trách nhiệm chính |
 | :---: | :--- | :---: | :---: | :--- |
-| 1 | **Nguyễn Đức Bảo Trung** | **25521963** | **Leader** | Quản lý kiến trúc, GitHub, phân quyền, Dashboard, tích hợp hệ thống. |
-| 2 | **Lê Gia Bảo** | **25520132** | Member | Quản lý khách hàng, danh mục phòng và loại phòng. |
-| 3 | **Nguyễn Thành Phát** | **25521372** | Member | Nghiệp vụ Đặt phòng (Booking), Check-in & Check-out. |
-| 4 | **Lê Anh Duy** | **23520365** | Member | Nghiệp vụ Thanh toán (Payment), Hóa đơn, Thống kê báo cáo. |
+| 1 | **Nguyễn Đức Bảo Trung** | **25521963** | **TV01 — Leader** | Foundation, GitHub/PR review, authentication, integration, release. |
+| 2 | **Lê Gia Bảo** | **25520132** | **TV02** | Customer, Room/RoomType, shared model/repository contract, room statistics. |
+| 3 | **Nguyễn Thành Phát** | **25521372** | **TV03** | Booking, Check-in/Check-out, service contract, booking statistics. |
+| 4 | **Lê Anh Duy** | **23520365** | **TV04** | Payment/Invoice, UI system, dashboard/report, screenshots, documentation and slides. |
 
 ---
 
 ## GitHub Workflow (Quy trình làm việc nhóm)
 
 ### Mô hình nhánh (Branching Strategy)
-* `main`: Nhánh ổn định cao nhất, chỉ chứa mã nguồn đã sẵn sàng phát hành.
-* `develop`: Nhánh tích hợp chính cho toàn bộ tính năng đang phát triển.
-* `feature/<feature-name>`: Các nhánh phát triển tính năng riêng lẻ (ví dụ: `feature/auth`, `feature/booking`).
-* `bugfix/<issue-name>`: Các nhánh sửa lỗi phát sinh.
+* `main`: Bản ổn định/release. Mọi thay đổi đi qua Pull Request.
+* `develop`: Nhánh tích hợp cho feature đã được review.
+* Branch hiện có: `feature/foundation`, `feature/auth`, `feature/customer`, `feature/room`, `feature/booking`, `feature/checkin`, `feature/payment`, `feature/dashboard`, `feature/ui-system`.
+* `feature/<task-name>`: Ưu tiên branch ngắn theo task/PR; không giữ một branch dở dang quá lâu.
+* `docs/<topic>`: Tài liệu, README, report hoặc slide; chỉ tạo khi cần.
+* `bugfix/<issue-name>`: Sửa lỗi phát sinh.
+
+Quy trình chuẩn: `feature/* → Pull Request → develop`. Khi `develop` đã ổn định và qua kiểm thử tích hợp: `develop → Pull Request → main`. Riêng tài liệu nền tảng có thể tạo PR trực tiếp vào `main` khi chưa ảnh hưởng đến code phát hành.
 
 ### Quy chuẩn đặt tên Commit (Commit Convention)
 Tuân theo chuẩn **Conventional Commits**:
@@ -308,6 +314,8 @@ Tuân theo chuẩn **Conventional Commits**:
 **Hotel & Booking Management System** is a robust desktop application built on **C# Windows Forms** and **Microsoft SQL Server 2022**.
 
 The application is engineered to streamline front desk operations, room inventory tracking, and payment processing, mitigating recurring issues in traditional management such as double-booking, status desynchronization, invoicing discrepancies, and revenue leakage.
+
+> **Current status:** The project is in planning and foundation setup. The features, diagrams, and UI screenshots below describe the v1.0 scope; they are complete only when corresponding source code, database scripts, and tests exist in the repository.
 
 ### Core Operational Lifecycle
 ```text
@@ -560,20 +568,24 @@ Developed by students of course **IT008.R12 - Lập trình hướng đối tư�
 
 | # | Full Name | Student ID (MSSV) | Role | Primary Responsibilities |
 | :---: | :--- | :---: | :---: | :--- |
-| 1 | **Nguyễn Đức Bảo Trung** | **25521963** | **Leader** | Architecture, GitHub repository, authentication, dashboard, integration. |
-| 2 | **Lê Gia Bảo** | **25520132** | Member | Customer management, room and room-type operations. |
-| 3 | **Nguyễn Thành Phát** | **25521372** | Member | Reservation workflow, check-in, and check-out logic. |
-| 4 | **Lê Anh Duy** | **23520365** | Member | Billing, invoicing, payment transactions, and statistical reports. |
+| 1 | **Nguyễn Đức Bảo Trung** | **25521963** | **TV01 — Leader** | Foundation, GitHub/PR review, authentication, integration, release. |
+| 2 | **Lê Gia Bảo** | **25520132** | **TV02** | Customer, Room/RoomType, shared model/repository contract, room statistics. |
+| 3 | **Nguyễn Thành Phát** | **25521372** | **TV03** | Booking, check-in/check-out, service contract, booking statistics. |
+| 4 | **Lê Anh Duy** | **23520365** | **TV04** | Payment/invoice, UI system, dashboard/report, screenshots, documentation, and slides. |
 
 ---
 
 ## GitHub Workflow
 
 ### Branching Model
-* `main`: Production-ready, stable releases only.
-* `develop`: Main integration branch for active features.
-* `feature/<name>`: Specific module developments (e.g., `feature/auth`, `feature/booking`).
-* `bugfix/<name>`: Isolated defect resolution branches.
+* `main`: Stable release branch. Every change is merged through a pull request.
+* `develop`: Integration branch for reviewed features.
+* Existing branches: `feature/foundation`, `feature/auth`, `feature/customer`, `feature/room`, `feature/booking`, `feature/checkin`, `feature/payment`, `feature/dashboard`, and `feature/ui-system`.
+* `feature/<task-name>`: Prefer short-lived task/PR branches.
+* `docs/<topic>`: Documentation, report, or slide work when needed.
+* `bugfix/<name>`: Isolated bug fixes.
+
+Standard flow: `feature/* → Pull Request → develop`; after integration testing, `develop → Pull Request → main`.
 
 ### Commit Conventions
 Following the standard **Conventional Commits**:
