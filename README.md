@@ -1,6 +1,6 @@
 # Hotel & Booking Management System
 
-> **Đồ án cuối kỳ môn học: IT008.R12 - Lập trình hướng đối tượng**  
+> **Đồ án cuối kỳ môn học: IT008.R12 - Lập trình trực quan**  
 > **Trường Đại học Công nghệ Thông tin, ĐHQG-TP.HCM (UIT - VNU-HCM)**  
 > **Giảng viên hướng dẫn: ThS. Nguyễn Tấn Toàn**
 
@@ -274,7 +274,7 @@ Hệ thống được nạp sẵn 2 tài khoản mẫu trong tệp `seed.sql` v�
 
 ## Team Members (Thành viên nhóm)
 
-Dự án được thực hiện bởi nhóm sinh viên **IT008.R12 - Lập trình hướng đối tượng**:
+Dự án được thực hiện bởi nhóm sinh viên **IT008.R12 - Lập trình trực quan**:
 
 | STT | Họ và Tên | Mã số sinh viên (MSSV) | Vai trò | Trách nhiệm chính |
 | :---: | :--- | :---: | :---: | :--- |
@@ -564,7 +564,7 @@ The seed data provisions two default testing accounts:
 
 ## Team Members
 
-Developed by students of course **IT008.R12 - Lập trình hướng đối tượng**:
+Developed by students of course **IT008.R12 - Visual Programming (Lập trình trực quan)**:
 
 | # | Full Name | Student ID (MSSV) | Role | Primary Responsibilities |
 | :---: | :--- | :---: | :---: | :--- |
