@@ -1,10 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Windows.Forms;
 
 namespace HotelBookingManagement.Controls
 {
-	internal class BookingsControl
+	public partial class BookingsControl : UserControl
 	{
+		public BookingsControl()
+		{
+			InitializeComponent();
+		}
 	}
 }
