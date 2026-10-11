@@ -1,4 +1,7 @@
-﻿namespace HotelBookingManagement.Forms
+using System.Drawing;
+using System.Windows.Forms;
+
+namespace HotelBookingManagement.Forms
 {
 	partial class LoginForm
 	{
@@ -28,131 +31,217 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
-			label1 = new Label();
-			label2 = new Label();
-			label3 = new Label();
+			panelBanner = new Panel();
+			lblBannerSubtitle = new Label();
+			lblBannerTitle = new Label();
+			lblBannerIcon = new Label();
+			lblUsername = new Label();
 			tbUsername = new TextBox();
+			lblPassword = new Label();
 			tbPassword = new TextBox();
 			chkShowPassword = new CheckBox();
+			lbErorrMessage = new Label();
 			btnLogin = new Button();
 			btnExit = new Button();
-			lbErorrMessage = new Label();
+			lblFooter = new Label();
+			panelBanner.SuspendLayout();
 			SuspendLayout();
 			// 
-			// label1
+			// panelBanner
 			// 
-			label1.Font = new Font("Segoe UI", 20F);
-			label1.Location = new Point(169, 19);
-			label1.Name = "label1";
-			label1.Size = new Size(462, 46);
-			label1.TabIndex = 0;
-			label1.Text = "HỆ THỐNG QUẢN LÝ KHÁCH SẠN";
-			label1.TextAlign = ContentAlignment.MiddleCenter;
+			panelBanner.BackColor = Color.FromArgb(24, 30, 54);
+			panelBanner.Controls.Add(lblBannerSubtitle);
+			panelBanner.Controls.Add(lblBannerTitle);
+			panelBanner.Controls.Add(lblBannerIcon);
+			panelBanner.Dock = DockStyle.Top;
+			panelBanner.Location = new Point(0, 0);
+			panelBanner.Name = "panelBanner";
+			panelBanner.Size = new Size(450, 130);
+			panelBanner.TabIndex = 0;
 			// 
-			// label2
+			// lblBannerSubtitle
 			// 
-			label2.AutoSize = true;
-			label2.Location = new Point(143, 157);
-			label2.Name = "label2";
-			label2.Size = new Size(107, 20);
-			label2.TabIndex = 1;
-			label2.Text = "Tên đăng nhập";
+			lblBannerSubtitle.Font = new Font("Segoe UI", 9F);
+			lblBannerSubtitle.ForeColor = Color.FromArgb(170, 185, 210);
+			lblBannerSubtitle.Location = new Point(0, 92);
+			lblBannerSubtitle.Name = "lblBannerSubtitle";
+			lblBannerSubtitle.Size = new Size(450, 22);
+			lblBannerSubtitle.TabIndex = 2;
+			lblBannerSubtitle.Text = "HỆ THỐNG QUẢN LÝ KHÁCH SẠN";
+			lblBannerSubtitle.TextAlign = ContentAlignment.MiddleCenter;
 			// 
-			// label3
+			// lblBannerTitle
 			// 
-			label3.AutoSize = true;
-			label3.Location = new Point(143, 217);
-			label3.Name = "label3";
-			label3.Size = new Size(70, 20);
-			label3.TabIndex = 2;
-			label3.Text = "Mật khẩu";
+			lblBannerTitle.Font = new Font("Segoe UI", 13.5F, FontStyle.Bold);
+			lblBannerTitle.ForeColor = Color.White;
+			lblBannerTitle.Location = new Point(0, 60);
+			lblBannerTitle.Name = "lblBannerTitle";
+			lblBannerTitle.Size = new Size(450, 32);
+			lblBannerTitle.TabIndex = 1;
+			lblBannerTitle.Text = "HOTEL MANAGEMENT";
+			lblBannerTitle.TextAlign = ContentAlignment.MiddleCenter;
+			// 
+			// lblBannerIcon
+			// 
+			lblBannerIcon.Font = new Font("Segoe UI", 26F);
+			lblBannerIcon.ForeColor = Color.White;
+			lblBannerIcon.Location = new Point(0, 10);
+			lblBannerIcon.Name = "lblBannerIcon";
+			lblBannerIcon.Size = new Size(450, 50);
+			lblBannerIcon.TabIndex = 0;
+			lblBannerIcon.Text = "🏨";
+			lblBannerIcon.TextAlign = ContentAlignment.MiddleCenter;
+			// 
+			// lblUsername
+			// 
+			lblUsername.AutoSize = true;
+			lblUsername.Font = new Font("Segoe UI", 8.5F, FontStyle.Bold);
+			lblUsername.ForeColor = Color.FromArgb(80, 90, 105);
+			lblUsername.Location = new Point(45, 155);
+			lblUsername.Name = "lblUsername";
+			lblUsername.Size = new Size(130, 20);
+			lblUsername.TabIndex = 1;
+			lblUsername.Text = "TÊN ĐĂNG NHẬP";
 			// 
 			// tbUsername
 			// 
-			tbUsername.Location = new Point(291, 154);
+			tbUsername.BorderStyle = BorderStyle.FixedSingle;
+			tbUsername.Font = new Font("Segoe UI", 11F);
+			tbUsername.Location = new Point(45, 178);
 			tbUsername.Name = "tbUsername";
-			tbUsername.Size = new Size(298, 27);
-			tbUsername.TabIndex = 3;
+			tbUsername.Size = new Size(360, 32);
+			tbUsername.TabIndex = 2;
+			// 
+			// lblPassword
+			// 
+			lblPassword.AutoSize = true;
+			lblPassword.Font = new Font("Segoe UI", 8.5F, FontStyle.Bold);
+			lblPassword.ForeColor = Color.FromArgb(80, 90, 105);
+			lblPassword.Location = new Point(45, 225);
+			lblPassword.Name = "lblPassword";
+			lblPassword.Size = new Size(86, 20);
+			lblPassword.TabIndex = 3;
+			lblPassword.Text = "MẬT KHẨU";
 			// 
 			// tbPassword
 			// 
-			tbPassword.Location = new Point(291, 214);
+			tbPassword.BorderStyle = BorderStyle.FixedSingle;
+			tbPassword.Font = new Font("Segoe UI", 11F);
+			tbPassword.Location = new Point(45, 248);
 			tbPassword.Name = "tbPassword";
-			tbPassword.Size = new Size(298, 27);
+			tbPassword.Size = new Size(360, 32);
 			tbPassword.TabIndex = 4;
 			tbPassword.UseSystemPasswordChar = true;
 			// 
 			// chkShowPassword
 			// 
 			chkShowPassword.AutoSize = true;
-			chkShowPassword.Location = new Point(606, 217);
+			chkShowPassword.Cursor = Cursors.Hand;
+			chkShowPassword.Font = new Font("Segoe UI", 9F);
+			chkShowPassword.ForeColor = Color.FromArgb(90, 100, 115);
+			chkShowPassword.Location = new Point(45, 288);
 			chkShowPassword.Name = "chkShowPassword";
-			chkShowPassword.Size = new Size(127, 24);
+			chkShowPassword.Size = new Size(129, 24);
 			chkShowPassword.TabIndex = 5;
 			chkShowPassword.Text = "Hiện mật khẩu";
 			chkShowPassword.UseVisualStyleBackColor = true;
 			chkShowPassword.CheckedChanged += chkShowPassword_CheckedChanged;
 			// 
+			// lbErorrMessage
+			// 
+			lbErorrMessage.Font = new Font("Segoe UI", 9F, FontStyle.Italic);
+			lbErorrMessage.ForeColor = Color.FromArgb(220, 53, 69);
+			lbErorrMessage.Location = new Point(45, 315);
+			lbErorrMessage.Name = "lbErorrMessage";
+			lbErorrMessage.Size = new Size(360, 36);
+			lbErorrMessage.TabIndex = 6;
+			lbErorrMessage.TextAlign = ContentAlignment.MiddleCenter;
+			// 
 			// btnLogin
 			// 
-			btnLogin.Location = new Point(385, 273);
+			btnLogin.BackColor = Color.FromArgb(13, 110, 253);
+			btnLogin.Cursor = Cursors.Hand;
+			btnLogin.FlatAppearance.BorderSize = 0;
+			btnLogin.FlatStyle = FlatStyle.Flat;
+			btnLogin.Font = new Font("Segoe UI", 10.5F, FontStyle.Bold);
+			btnLogin.ForeColor = Color.White;
+			btnLogin.Location = new Point(45, 356);
 			btnLogin.Name = "btnLogin";
-			btnLogin.Size = new Size(94, 29);
-			btnLogin.TabIndex = 6;
-			btnLogin.Text = "Đăng nhập";
-			btnLogin.UseVisualStyleBackColor = true;
+			btnLogin.Size = new Size(360, 42);
+			btnLogin.TabIndex = 7;
+			btnLogin.Text = "ĐĂNG NHẬP";
+			btnLogin.UseVisualStyleBackColor = false;
 			btnLogin.Click += btnLogin_Click;
 			// 
 			// btnExit
 			// 
-			btnExit.Location = new Point(495, 273);
+			btnExit.BackColor = Color.FromArgb(240, 242, 245);
+			btnExit.Cursor = Cursors.Hand;
+			btnExit.FlatAppearance.BorderSize = 0;
+			btnExit.FlatStyle = FlatStyle.Flat;
+			btnExit.Font = new Font("Segoe UI", 9F);
+			btnExit.ForeColor = Color.FromArgb(100, 110, 125);
+			btnExit.Location = new Point(45, 408);
 			btnExit.Name = "btnExit";
-			btnExit.Size = new Size(94, 29);
-			btnExit.TabIndex = 7;
-			btnExit.Text = "Thoát";
-			btnExit.UseVisualStyleBackColor = true;
+			btnExit.Size = new Size(360, 36);
+			btnExit.TabIndex = 8;
+			btnExit.Text = "Thoát ứng dụng";
+			btnExit.UseVisualStyleBackColor = false;
 			btnExit.Click += btnExit_Click;
 			// 
-			// lbErorrMessage
+			// lblFooter
 			// 
-			lbErorrMessage.AutoSize = true;
-			lbErorrMessage.ForeColor = Color.Red;
-			lbErorrMessage.Location = new Point(495, 244);
-			lbErorrMessage.Name = "lbErorrMessage";
-			lbErorrMessage.Size = new Size(0, 20);
-			lbErorrMessage.TabIndex = 8;
+			lblFooter.Font = new Font("Segoe UI", 8F);
+			lblFooter.ForeColor = Color.Silver;
+			lblFooter.Location = new Point(0, 465);
+			lblFooter.Name = "lblFooter";
+			lblFooter.Size = new Size(450, 25);
+			lblFooter.TabIndex = 9;
+			lblFooter.Text = "IT008 - Lập trình trực quan | UIT © 2026";
+			lblFooter.TextAlign = ContentAlignment.MiddleCenter;
 			// 
 			// LoginForm
 			// 
 			AutoScaleDimensions = new SizeF(8F, 20F);
 			AutoScaleMode = AutoScaleMode.Font;
-			ClientSize = new Size(800, 450);
-			Controls.Add(lbErorrMessage);
+			BackColor = Color.White;
+			ClientSize = new Size(450, 505);
+			Controls.Add(lblFooter);
 			Controls.Add(btnExit);
 			Controls.Add(btnLogin);
+			Controls.Add(lbErorrMessage);
 			Controls.Add(chkShowPassword);
 			Controls.Add(tbPassword);
+			Controls.Add(lblPassword);
 			Controls.Add(tbUsername);
-			Controls.Add(label3);
-			Controls.Add(label2);
-			Controls.Add(label1);
+			Controls.Add(lblUsername);
+			Controls.Add(panelBanner);
+			FormBorderStyle = FormBorderStyle.FixedDialog;
+			MaximizeBox = false;
+			MinimizeBox = false;
 			Name = "LoginForm";
-			Text = "LoginForm";
+			StartPosition = FormStartPosition.CenterScreen;
+			Text = "Đăng nhập - Hotel Booking Management";
 			Load += LoginForm_Load;
+			panelBanner.ResumeLayout(false);
 			ResumeLayout(false);
 			PerformLayout();
 		}
 
 		#endregion
 
-		private Label label1;
-		private Label label2;
-		private Label label3;
+		private Panel panelBanner;
+		private Label lblBannerIcon;
+		private Label lblBannerTitle;
+		private Label lblBannerSubtitle;
+		private Label lblUsername;
 		private TextBox tbUsername;
+		private Label lblPassword;
 		private TextBox tbPassword;
 		private CheckBox chkShowPassword;
+		private Label lbErorrMessage;
 		private Button btnLogin;
 		private Button btnExit;
-		private Label lbErorrMessage;
+		private Label lblFooter;
 	}
 }

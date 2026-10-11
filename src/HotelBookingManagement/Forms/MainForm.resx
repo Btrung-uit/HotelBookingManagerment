@@ -117,4 +117,12 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="lblWelcomeDesc.Text" xml:space="preserve">
+    <value>Kiến trúc nền tảng 3-Tier Layered Architecture và Quản lý phiên làm việc đã sẵn sàng.
+
+• TV01 (Leader): Architecture, Database, Authentication &amp; App Shell [ĐÃ HOÀN THÀNH]
+• TV02: Phụ trách Module Quản lý Phòng &amp; Quản lý Khách hàng
+• TV03: Phụ trách Module Đặt phòng (Booking) &amp; Nhận/Trả phòng (Check-in/out)
+• TV04: Phụ trách Module Thanh toán (Payment) &amp; Báo cáo doanh thu (Reports)</value>
+  </data>
 </root>
