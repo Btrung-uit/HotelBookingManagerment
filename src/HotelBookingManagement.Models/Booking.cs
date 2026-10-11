@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -11,7 +11,7 @@ public class Booking
 	public DateTime BookingDate { get; set; } = DateTime.Now;
 	public DateTime CheckOutDate { get; set; }
 	public DateTime CheckInDate { get; set; }
-	public string Status { get; set; } // PENDING, CONFIRMED, CHECKED_IN, COMPLETED, CANCELLED
+	public string Status { get; set; } = string.Empty; // PENDING, CONFIRMED, CHECKED_IN, COMPLETED, CANCELLED
 	public decimal TotalAmount { get; set; } = 0;
 	public int CreatedBy { get; set; } // Nhân viên tạo đơn
 	public DateTime CreatedAt { get; set; } = DateTime.Now;

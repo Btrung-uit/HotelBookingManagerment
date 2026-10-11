@@ -2,6 +2,9 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using HotelBookingManagement.Business;
+using HotelBookingManagement.Business.Interfaces;
+using HotelBookingManagement.Business.Services;
+using HotelBookingManagement.Data.Repositories;
 
 namespace HotelBookingManagement.Forms
 {
@@ -9,10 +12,12 @@ namespace HotelBookingManagement.Forms
 	{
 		private readonly Color _activeNavColor = Color.FromArgb(13, 110, 253);
 		private readonly Color _defaultNavColor = Color.FromArgb(34, 40, 60);
-
+		private readonly IDashboardService _dashboardService;
 		public MainForm()
 		{
 			InitializeComponent();
+			var dashboardRepo = new DashboardRepository();
+			_dashboardService = new DashboardService(dashboardRepo);
 		}
 
 		private void MainForm_Load(object sender, EventArgs e)
@@ -31,6 +36,24 @@ namespace HotelBookingManagement.Forms
 			// 2. PHÂN QUYỀN (Role-Based Authorization):
 			// Nút Báo cáo & Doanh thu chỉ Quản lý mới được phép truy cập
 			btnNavReports.Visible = UserSession.IsManager;
+			
+			LoadDashboardStats();
+		}
+
+		private void LoadDashboardStats()
+		{
+			try
+			{
+				var stats = _dashboardService.GetStats();
+				lblCardRoomsValue.Text = stats.TotalRooms.ToString();
+				lblCardAvailableValue.Text = stats.AvailableRooms.ToString();
+				lblCardBookingsValue.Text = stats.TotalBookings.ToString();
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"Không thể tải dữ liệu thống kê: {ex.Message}", "Lỗi dữ liệu",
+					MessageBoxButtons.OK, MessageBoxIcon.Warning);
+			}
 		}
 
 		// Xử lý đổi trạng thái nút Sidebar đang chọn
@@ -59,6 +82,9 @@ namespace HotelBookingManagement.Forms
 		{
 			SetActiveTab(btnNavRooms, "QUẢN LÝ PHÒNG (MODULE TV02)");
 			// Nơi TV02 sẽ nhúng UserControl RoomManagement vào panelBody
+
+			// Cập nhật lại số liệu mới nhất khi bấm nút Tổng quan
+			LoadDashboardStats();
 		}
 
 		private void btnNavCustomers_Click(object sender, EventArgs e)
