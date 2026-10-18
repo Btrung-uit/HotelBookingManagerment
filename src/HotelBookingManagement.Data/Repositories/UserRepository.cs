@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data;
 using Microsoft.Data.SqlClient;
 using HotelBookingManagement.Data.Database;
@@ -9,7 +9,7 @@ namespace HotelBookingManagement.Data.Repositories;
 
 public class UserRepository : IUserRepository
 {
-	public Users? GetByUsername(string username)
+	public User? GetByUsername(string username)
 	{
 		const string query = @"
 		SELECT UserId, Username, PasswordHash, FullName, Role, IsActive, CreatedAt
@@ -32,7 +32,7 @@ public class UserRepository : IUserRepository
 		return null;
 	}
 
-	public Users? GetById(int userId)
+	public User? GetById(int userId)
 	{
 		const string query = @"
 		SELECT UserId, Username, PasswordHash, FullName, Role, IsActive, CreatedAt
@@ -52,10 +52,10 @@ public class UserRepository : IUserRepository
 
 		return null;
 	}
-	// Helper map dữ liệu từ SqlDataReader sang Object Model Users
-	private static Users MapReaderToUser(SqlDataReader reader)
+	// Helper map dữ liệu từ SqlDataReader sang Object Model User
+	private static User MapReaderToUser(SqlDataReader reader)
 	{
-		return new Users
+		return new User
 		{
 			UserId = reader.GetInt32(reader.GetOrdinal("UserId")),
 			Username = reader.GetString(reader.GetOrdinal("Username")),
