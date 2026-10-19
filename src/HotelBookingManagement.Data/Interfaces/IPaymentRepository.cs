@@ -25,6 +25,12 @@ public interface IPaymentRepository
 	IEnumerable<Payment> GetByBookingId(int bookingId);
 
 	/// <summary>
+	/// Tính tổng số tiền đã thanh toán thành công cho một đơn đặt phòng (SUM(Amount) WHERE Status = 'COMPLETED').
+	/// Phục vụ quy tắc nghiệp vụ: Kiểm tra không cho phép thanh toán vượt quá TotalAmount của Booking.
+	/// </summary>
+	decimal GetTotalPaidByBookingId(int bookingId);
+
+	/// <summary>
 	/// Thêm mới một bản ghi thanh toán
 	/// </summary>
 	/// <returns>PaymentId vừa sinh</returns>

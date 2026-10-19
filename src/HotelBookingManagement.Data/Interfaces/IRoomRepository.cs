@@ -38,6 +38,11 @@ public interface IRoomRepository
 	IEnumerable<Room> GetAvailableRooms(int? roomTypeId = null);
 
 	/// <summary>
+	/// Lấy danh sách các phòng trống và không bị trùng lịch đặt trong khoảng thời gian (BR-02)
+	/// </summary>
+	IEnumerable<Room> GetAvailableRoomsByDateRange(System.DateTime checkIn, System.DateTime checkOut, int? roomTypeId = null);
+
+	/// <summary>
 	/// Thêm mới một phòng vào hệ thống
 	/// </summary>
 	/// <returns>RoomId vừa sinh</returns>
