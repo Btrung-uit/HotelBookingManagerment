@@ -74,6 +74,18 @@ namespace HotelBookingManagement.Controls
 		}
 
 		/// <summary>
+		/// Tự động sinh Số thứ tự (STT) 1, 2, 3... liên tục theo dòng, không phụ thuộc vào ID trong CSDL
+		/// </summary>
+		private void dgvCustomers_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
+		{
+			if (e.RowIndex >= 0 && dgvCustomers.Columns[e.ColumnIndex].Name == "colSTT")
+			{
+				e.Value = (e.RowIndex + 1).ToString();
+				e.FormattingApplied = true;
+			}
+		}
+
+		/// <summary>
 		/// Khi click chọn một dòng trên bảng -> Nạp dữ liệu lên Form để xem hoặc chỉnh sửa
 		/// </summary>
 		private void dgvCustomers_CellClick(object? sender, DataGridViewCellEventArgs e)

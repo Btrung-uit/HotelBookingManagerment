@@ -63,6 +63,7 @@ namespace HotelBookingManagement.Controls
 			lblTotalCount = new Label();
 
 			dgvCustomers = new DataGridView();
+			colSTT = new DataGridViewTextBoxColumn();
 			colCustomerId = new DataGridViewTextBoxColumn();
 			colFullName = new DataGridViewTextBoxColumn();
 			colPhone = new DataGridViewTextBoxColumn();
@@ -579,6 +580,7 @@ namespace HotelBookingManagement.Controls
 			dgvCustomers.AlternatingRowsDefaultCellStyle = dgvAltStyle;
 
 			dgvCustomers.Columns.AddRange(new DataGridViewColumn[] {
+				colSTT,
 				colCustomerId,
 				colFullName,
 				colPhone,
@@ -602,6 +604,17 @@ namespace HotelBookingManagement.Controls
 			dgvCustomers.Size = new Size(656, 478);
 			dgvCustomers.TabIndex = 1;
 			dgvCustomers.CellClick += dgvCustomers_CellClick;
+			dgvCustomers.CellFormatting += dgvCustomers_CellFormatting;
+
+			// 
+			// colSTT
+			// 
+			colSTT.HeaderText = "STT";
+			colSTT.MinimumWidth = 45;
+			colSTT.Name = "colSTT";
+			colSTT.ReadOnly = true;
+			colSTT.Width = 55;
+			colSTT.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
 			// 
 			// colCustomerId
@@ -751,6 +764,7 @@ namespace HotelBookingManagement.Controls
 		private Label lblTotalCount;
 
 		private DataGridView dgvCustomers;
+		private DataGridViewTextBoxColumn colSTT;
 		private DataGridViewTextBoxColumn colCustomerId;
 		private DataGridViewTextBoxColumn colFullName;
 		private DataGridViewTextBoxColumn colPhone;

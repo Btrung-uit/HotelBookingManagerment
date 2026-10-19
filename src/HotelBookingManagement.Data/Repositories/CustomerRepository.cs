@@ -159,7 +159,10 @@ public class CustomerRepository : ICustomerRepository
 
 	public bool Delete(int customerId)
 	{
-		const string query = @"DELETE FROM dbo.Customers WHERE CustomerId = @CustomerId;";
+		const string query = @"
+			DELETE FROM dbo.Customers WHERE CustomerId = @CustomerId;
+			DECLARE @maxId INT = ISNULL((SELECT MAX(CustomerId) FROM dbo.Customers), 0);
+			DBCC CHECKIDENT ('dbo.Customers', RESEED, @maxId);";
 
 		using var connection = DatabaseConnection.GetConnection();
 		using var command = new SqlCommand(query, connection);
