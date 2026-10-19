@@ -20,11 +20,3 @@ public class Customer
 	// Navigation Property: Danh sách các đơn đặt phòng của khách hàng
 	public List<Booking> Bookings { get; set; } = new();
 }
-
-/// <summary>
-/// Lớp tương thích ngược cho tên cũ Customers (để không phá vỡ code hiện hữu)
-/// </summary>
-[Obsolete("Sử dụng Customer thay vì Customers theo chuẩn đặt tên số ít")]
-public class Customers : Customer
-{
-}
