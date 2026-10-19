@@ -19,11 +19,3 @@ public class User
 	// Navigation Property: Danh sách các đơn đặt phòng do nhân viên này tạo
 	public List<Booking> CreatedBookings { get; set; } = new();
 }
-
-/// <summary>
-/// Lớp tương thích ngược cho tên cũ Users (để không phá vỡ code hiện hữu)
-/// </summary>
-[Obsolete("Sử dụng User thay vì Users theo chuẩn đặt tên số ít")]
-public class Users : User
-{
-}
