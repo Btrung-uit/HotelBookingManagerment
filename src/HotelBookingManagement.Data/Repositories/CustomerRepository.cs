@@ -19,7 +19,7 @@ public class CustomerRepository : ICustomerRepository
 		const string query = @"
 			SELECT CustomerId, FullName, Phone, Email, IdentityNumber, Address, DateOfBirth, CreatedAt
 			FROM dbo.Customers
-			ORDER BY CustomerId DESC;";
+			ORDER BY CustomerId ASC;";
 
 		using var connection = DatabaseConnection.GetConnection();
 		using var command = new SqlCommand(query, connection);
@@ -91,7 +91,7 @@ public class CustomerRepository : ICustomerRepository
 			WHERE FullName LIKE @Pattern 
 			   OR Phone LIKE @Pattern 
 			   OR IdentityNumber LIKE @Pattern
-			ORDER BY CustomerId DESC;";
+			ORDER BY CustomerId ASC;";
 
 		using var connection = DatabaseConnection.GetConnection();
 		using var command = new SqlCommand(query, connection);
