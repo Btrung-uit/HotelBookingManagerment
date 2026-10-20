@@ -88,8 +88,8 @@ public class CustomerRepository : ICustomerRepository
 		const string query = @"
 			SELECT CustomerId, FullName, Phone, Email, IdentityNumber, Address, DateOfBirth, CreatedAt
 			FROM dbo.Customers
-			WHERE FullName LIKE @Pattern 
-			   OR Phone LIKE @Pattern 
+			WHERE FullName LIKE @Pattern
+			   OR Phone LIKE @Pattern
 			   OR IdentityNumber LIKE @Pattern
 			ORDER BY CustomerId ASC;";
 
@@ -159,10 +159,7 @@ public class CustomerRepository : ICustomerRepository
 
 	public bool Delete(int customerId)
 	{
-		const string query = @"
-			DELETE FROM dbo.Customers WHERE CustomerId = @CustomerId;
-			DECLARE @maxId INT = ISNULL((SELECT MAX(CustomerId) FROM dbo.Customers), 0);
-			DBCC CHECKIDENT ('dbo.Customers', RESEED, @maxId);";
+		const string query = @"DELETE FROM dbo.Customers WHERE CustomerId = @CustomerId;";
 
 		using var connection = DatabaseConnection.GetConnection();
 		using var command = new SqlCommand(query, connection);
@@ -175,9 +172,9 @@ public class CustomerRepository : ICustomerRepository
 	public bool ExistsByPhone(string phone, int? excludeCustomerId = null)
 	{
 		const string query = @"
-			SELECT COUNT(1) 
-			FROM dbo.Customers 
-			WHERE Phone = @Phone 
+			SELECT COUNT(1)
+			FROM dbo.Customers
+			WHERE Phone = @Phone
 			  AND (@ExcludeId IS NULL OR CustomerId != @ExcludeId);";
 
 		using var connection = DatabaseConnection.GetConnection();
@@ -193,9 +190,9 @@ public class CustomerRepository : ICustomerRepository
 	public bool ExistsByIdentityNumber(string identityNumber, int? excludeCustomerId = null)
 	{
 		const string query = @"
-			SELECT COUNT(1) 
-			FROM dbo.Customers 
-			WHERE IdentityNumber = @IdentityNumber 
+			SELECT COUNT(1)
+			FROM dbo.Customers
+			WHERE IdentityNumber = @IdentityNumber
 			  AND (@ExcludeId IS NULL OR CustomerId != @ExcludeId);";
 
 		using var connection = DatabaseConnection.GetConnection();

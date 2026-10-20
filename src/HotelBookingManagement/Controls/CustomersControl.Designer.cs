@@ -31,7 +31,7 @@ namespace HotelBookingManagement.Controls
 			panelMainContent = new Panel();
 			panelLeftForm = new Panel();
 			grpCustomerInfo = new GroupBox();
-			
+
 			lblCustomerId = new Label();
 			txtCustomerId = new TextBox();
 			lblFullName = new Label();
@@ -84,9 +84,9 @@ namespace HotelBookingManagement.Controls
 			((System.ComponentModel.ISupportInitialize)dgvCustomers).BeginInit();
 			SuspendLayout();
 
-			// 
+			//
 			// panelTopHeader
-			// 
+			//
 			panelTopHeader.BackColor = Color.White;
 			panelTopHeader.Controls.Add(lblHeader);
 			panelTopHeader.Controls.Add(lblSub);
@@ -97,9 +97,9 @@ namespace HotelBookingManagement.Controls
 			panelTopHeader.Size = new Size(1100, 75);
 			panelTopHeader.TabIndex = 0;
 
-			// 
+			//
 			// lblHeader
-			// 
+			//
 			lblHeader.AutoSize = true;
 			lblHeader.Font = new Font("Segoe UI", 13.5F, FontStyle.Bold);
 			lblHeader.ForeColor = Color.FromArgb(24, 30, 54);
@@ -109,9 +109,9 @@ namespace HotelBookingManagement.Controls
 			lblHeader.TabIndex = 0;
 			lblHeader.Text = "👥 QUẢN LÝ KHÁCH HÀNG (CUSTOMERS)";
 
-			// 
+			//
 			// lblSub
-			// 
+			//
 			lblSub.AutoSize = true;
 			lblSub.Font = new Font("Segoe UI", 9.5F);
 			lblSub.ForeColor = Color.FromArgb(108, 117, 125);
@@ -121,9 +121,9 @@ namespace HotelBookingManagement.Controls
 			lblSub.TabIndex = 1;
 			lblSub.Text = "Module TV02: Thêm mới, cập nhật, tra cứu thông tin khách hàng và lịch sử lưu trú";
 
-			// 
+			//
 			// panelMainContent
-			// 
+			//
 			panelMainContent.BackColor = Color.FromArgb(244, 246, 249);
 			panelMainContent.Controls.Add(panelRightGrid);
 			panelMainContent.Controls.Add(panelLeftForm);
@@ -134,9 +134,9 @@ namespace HotelBookingManagement.Controls
 			panelMainContent.Size = new Size(1100, 605);
 			panelMainContent.TabIndex = 1;
 
-			// 
+			//
 			// panelLeftForm
-			// 
+			//
 			panelLeftForm.BackColor = Color.Transparent;
 			panelLeftForm.Controls.Add(grpCustomerInfo);
 			panelLeftForm.Dock = DockStyle.Left;
@@ -145,9 +145,9 @@ namespace HotelBookingManagement.Controls
 			panelLeftForm.Size = new Size(380, 575);
 			panelLeftForm.TabIndex = 0;
 
-			// 
+			//
 			// grpCustomerInfo
-			// 
+			//
 			grpCustomerInfo.BackColor = Color.White;
 			grpCustomerInfo.Controls.Add(panelActionButtons);
 			grpCustomerInfo.Controls.Add(txtAddress);
@@ -175,9 +175,9 @@ namespace HotelBookingManagement.Controls
 			grpCustomerInfo.TabStop = false;
 			grpCustomerInfo.Text = "  Thông tin khách hàng  ";
 
-			// 
+			//
 			// lblCustomerId
-			// 
+			//
 			lblCustomerId.AutoSize = true;
 			lblCustomerId.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
 			lblCustomerId.ForeColor = Color.FromArgb(73, 80, 87);
@@ -187,9 +187,9 @@ namespace HotelBookingManagement.Controls
 			lblCustomerId.TabIndex = 0;
 			lblCustomerId.Text = "Mã khách hàng:";
 
-			// 
+			//
 			// txtCustomerId
-			// 
+			//
 			txtCustomerId.BackColor = Color.FromArgb(233, 236, 239);
 			txtCustomerId.BorderStyle = BorderStyle.FixedSingle;
 			txtCustomerId.Font = new Font("Segoe UI", 9.5F);
@@ -201,9 +201,9 @@ namespace HotelBookingManagement.Controls
 			txtCustomerId.TabIndex = 1;
 			txtCustomerId.Text = "(Tự động sinh)";
 
-			// 
+			//
 			// lblFullName
-			// 
+			//
 			lblFullName.AutoSize = true;
 			lblFullName.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
 			lblFullName.ForeColor = Color.FromArgb(73, 80, 87);
@@ -213,9 +213,9 @@ namespace HotelBookingManagement.Controls
 			lblFullName.TabIndex = 2;
 			lblFullName.Text = "Họ và tên (*):";
 
-			// 
+			//
 			// txtFullName
-			// 
+			//
 			txtFullName.BorderStyle = BorderStyle.FixedSingle;
 			txtFullName.Font = new Font("Segoe UI", 9.5F);
 			txtFullName.Location = new Point(16, 110);
@@ -225,9 +225,9 @@ namespace HotelBookingManagement.Controls
 			txtFullName.Size = new Size(346, 29);
 			txtFullName.TabIndex = 3;
 
-			// 
+			//
 			// lblPhone
-			// 
+			//
 			lblPhone.AutoSize = true;
 			lblPhone.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
 			lblPhone.ForeColor = Color.FromArgb(73, 80, 87);
@@ -237,9 +237,9 @@ namespace HotelBookingManagement.Controls
 			lblPhone.TabIndex = 4;
 			lblPhone.Text = "Số điện thoại (*):";
 
-			// 
+			//
 			// txtPhone
-			// 
+			//
 			txtPhone.BorderStyle = BorderStyle.FixedSingle;
 			txtPhone.Font = new Font("Segoe UI", 9.5F);
 			txtPhone.Location = new Point(16, 166);
@@ -249,9 +249,9 @@ namespace HotelBookingManagement.Controls
 			txtPhone.Size = new Size(346, 29);
 			txtPhone.TabIndex = 5;
 
-			// 
+			//
 			// lblIdentityNumber
-			// 
+			//
 			lblIdentityNumber.AutoSize = true;
 			lblIdentityNumber.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
 			lblIdentityNumber.ForeColor = Color.FromArgb(73, 80, 87);
@@ -261,9 +261,9 @@ namespace HotelBookingManagement.Controls
 			lblIdentityNumber.TabIndex = 6;
 			lblIdentityNumber.Text = "CCCD / Hộ chiếu (*):";
 
-			// 
+			//
 			// txtIdentityNumber
-			// 
+			//
 			txtIdentityNumber.BorderStyle = BorderStyle.FixedSingle;
 			txtIdentityNumber.Font = new Font("Segoe UI", 9.5F);
 			txtIdentityNumber.Location = new Point(16, 222);
@@ -273,9 +273,9 @@ namespace HotelBookingManagement.Controls
 			txtIdentityNumber.Size = new Size(346, 29);
 			txtIdentityNumber.TabIndex = 7;
 
-			// 
+			//
 			// lblEmail
-			// 
+			//
 			lblEmail.AutoSize = true;
 			lblEmail.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
 			lblEmail.ForeColor = Color.FromArgb(73, 80, 87);
@@ -285,9 +285,9 @@ namespace HotelBookingManagement.Controls
 			lblEmail.TabIndex = 8;
 			lblEmail.Text = "Email:";
 
-			// 
+			//
 			// txtEmail
-			// 
+			//
 			txtEmail.BorderStyle = BorderStyle.FixedSingle;
 			txtEmail.Font = new Font("Segoe UI", 9.5F);
 			txtEmail.Location = new Point(16, 278);
@@ -297,9 +297,9 @@ namespace HotelBookingManagement.Controls
 			txtEmail.Size = new Size(346, 29);
 			txtEmail.TabIndex = 9;
 
-			// 
+			//
 			// lblDateOfBirth
-			// 
+			//
 			lblDateOfBirth.AutoSize = true;
 			lblDateOfBirth.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
 			lblDateOfBirth.ForeColor = Color.FromArgb(73, 80, 87);
@@ -309,9 +309,9 @@ namespace HotelBookingManagement.Controls
 			lblDateOfBirth.TabIndex = 10;
 			lblDateOfBirth.Text = "Ngày sinh:";
 
-			// 
+			//
 			// dtpDateOfBirth
-			// 
+			//
 			dtpDateOfBirth.CustomFormat = "dd/MM/yyyy";
 			dtpDateOfBirth.Font = new Font("Segoe UI", 9.5F);
 			dtpDateOfBirth.Format = DateTimePickerFormat.Custom;
@@ -322,9 +322,9 @@ namespace HotelBookingManagement.Controls
 			dtpDateOfBirth.Size = new Size(346, 29);
 			dtpDateOfBirth.TabIndex = 11;
 
-			// 
+			//
 			// lblAddress
-			// 
+			//
 			lblAddress.AutoSize = true;
 			lblAddress.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
 			lblAddress.ForeColor = Color.FromArgb(73, 80, 87);
@@ -334,9 +334,9 @@ namespace HotelBookingManagement.Controls
 			lblAddress.TabIndex = 12;
 			lblAddress.Text = "Địa chỉ:";
 
-			// 
+			//
 			// txtAddress
-			// 
+			//
 			txtAddress.BorderStyle = BorderStyle.FixedSingle;
 			txtAddress.Font = new Font("Segoe UI", 9.5F);
 			txtAddress.Location = new Point(16, 390);
@@ -348,9 +348,9 @@ namespace HotelBookingManagement.Controls
 			txtAddress.Size = new Size(346, 60);
 			txtAddress.TabIndex = 13;
 
-			// 
+			//
 			// panelActionButtons
-			// 
+			//
 			panelActionButtons.Controls.Add(btnClear);
 			panelActionButtons.Controls.Add(btnDelete);
 			panelActionButtons.Controls.Add(btnUpdate);
@@ -360,9 +360,9 @@ namespace HotelBookingManagement.Controls
 			panelActionButtons.Size = new Size(346, 95);
 			panelActionButtons.TabIndex = 14;
 
-			// 
+			//
 			// btnAdd
-			// 
+			//
 			btnAdd.BackColor = Color.FromArgb(13, 110, 253);
 			btnAdd.Cursor = Cursors.Hand;
 			btnAdd.FlatAppearance.BorderSize = 0;
@@ -377,9 +377,9 @@ namespace HotelBookingManagement.Controls
 			btnAdd.UseVisualStyleBackColor = false;
 			btnAdd.Click += btnAdd_Click;
 
-			// 
+			//
 			// btnUpdate
-			// 
+			//
 			btnUpdate.BackColor = Color.FromArgb(25, 135, 84);
 			btnUpdate.Cursor = Cursors.Hand;
 			btnUpdate.FlatAppearance.BorderSize = 0;
@@ -394,9 +394,9 @@ namespace HotelBookingManagement.Controls
 			btnUpdate.UseVisualStyleBackColor = false;
 			btnUpdate.Click += btnUpdate_Click;
 
-			// 
+			//
 			// btnDelete
-			// 
+			//
 			btnDelete.BackColor = Color.FromArgb(220, 53, 69);
 			btnDelete.Cursor = Cursors.Hand;
 			btnDelete.FlatAppearance.BorderSize = 0;
@@ -411,9 +411,9 @@ namespace HotelBookingManagement.Controls
 			btnDelete.UseVisualStyleBackColor = false;
 			btnDelete.Click += btnDelete_Click;
 
-			// 
+			//
 			// btnClear
-			// 
+			//
 			btnClear.BackColor = Color.FromArgb(108, 117, 125);
 			btnClear.Cursor = Cursors.Hand;
 			btnClear.FlatAppearance.BorderSize = 0;
@@ -428,9 +428,9 @@ namespace HotelBookingManagement.Controls
 			btnClear.UseVisualStyleBackColor = false;
 			btnClear.Click += btnClear_Click;
 
-			// 
+			//
 			// panelRightGrid
-			// 
+			//
 			panelRightGrid.BackColor = Color.Transparent;
 			panelRightGrid.Controls.Add(grpCustomerList);
 			panelRightGrid.Dock = DockStyle.Fill;
@@ -440,9 +440,9 @@ namespace HotelBookingManagement.Controls
 			panelRightGrid.Size = new Size(690, 575);
 			panelRightGrid.TabIndex = 1;
 
-			// 
+			//
 			// grpCustomerList
-			// 
+			//
 			grpCustomerList.BackColor = Color.White;
 			grpCustomerList.Controls.Add(dgvCustomers);
 			grpCustomerList.Controls.Add(panelSearchHeader);
@@ -457,9 +457,9 @@ namespace HotelBookingManagement.Controls
 			grpCustomerList.TabStop = false;
 			grpCustomerList.Text = "  Danh sách khách hàng  ";
 
-			// 
+			//
 			// panelSearchHeader
-			// 
+			//
 			panelSearchHeader.Controls.Add(lblTotalCount);
 			panelSearchHeader.Controls.Add(btnRefresh);
 			panelSearchHeader.Controls.Add(btnSearch);
@@ -471,9 +471,9 @@ namespace HotelBookingManagement.Controls
 			panelSearchHeader.Size = new Size(656, 50);
 			panelSearchHeader.TabIndex = 0;
 
-			// 
+			//
 			// lblSearch
-			// 
+			//
 			lblSearch.AutoSize = true;
 			lblSearch.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
 			lblSearch.ForeColor = Color.FromArgb(73, 80, 87);
@@ -483,28 +483,28 @@ namespace HotelBookingManagement.Controls
 			lblSearch.TabIndex = 0;
 			lblSearch.Text = "Tìm kiếm:";
 
-			// 
+			//
 			// txtSearch
-			// 
+			//
 			txtSearch.BorderStyle = BorderStyle.FixedSingle;
 			txtSearch.Font = new Font("Segoe UI", 9.5F);
-			txtSearch.Location = new Point(83, 10);
+			txtSearch.Location = new Point(78, 10);
 			txtSearch.Name = "txtSearch";
 			txtSearch.PlaceholderText = "Nhập Họ tên, Số điện thoại hoặc CCCD/Hộ chiếu...";
-			txtSearch.Size = new Size(290, 29);
+			txtSearch.Size = new Size(228, 29);
 			txtSearch.TabIndex = 1;
 			txtSearch.KeyDown += txtSearch_KeyDown;
 
-			// 
+			//
 			// btnSearch
-			// 
+			//
 			btnSearch.BackColor = Color.FromArgb(13, 110, 253);
 			btnSearch.Cursor = Cursors.Hand;
 			btnSearch.FlatAppearance.BorderSize = 0;
 			btnSearch.FlatStyle = FlatStyle.Flat;
 			btnSearch.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
 			btnSearch.ForeColor = Color.White;
-			btnSearch.Location = new Point(380, 9);
+			btnSearch.Location = new Point(312, 9);
 			btnSearch.Name = "btnSearch";
 			btnSearch.Size = new Size(95, 31);
 			btnSearch.TabIndex = 2;
@@ -512,16 +512,16 @@ namespace HotelBookingManagement.Controls
 			btnSearch.UseVisualStyleBackColor = false;
 			btnSearch.Click += btnSearch_Click;
 
-			// 
+			//
 			// btnRefresh
-			// 
+			//
 			btnRefresh.BackColor = Color.FromArgb(108, 117, 125);
 			btnRefresh.Cursor = Cursors.Hand;
 			btnRefresh.FlatAppearance.BorderSize = 0;
 			btnRefresh.FlatStyle = FlatStyle.Flat;
 			btnRefresh.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
 			btnRefresh.ForeColor = Color.White;
-			btnRefresh.Location = new Point(482, 9);
+			btnRefresh.Location = new Point(413, 9);
 			btnRefresh.Name = "btnRefresh";
 			btnRefresh.Size = new Size(80, 31);
 			btnRefresh.TabIndex = 3;
@@ -529,30 +529,31 @@ namespace HotelBookingManagement.Controls
 			btnRefresh.UseVisualStyleBackColor = false;
 			btnRefresh.Click += btnRefresh_Click;
 
-			// 
+			//
 			// lblTotalCount
-			// 
+			//
 			lblTotalCount.Anchor = AnchorStyles.Top | AnchorStyles.Right;
 			lblTotalCount.Font = new Font("Segoe UI", 9F, FontStyle.Italic);
 			lblTotalCount.ForeColor = Color.FromArgb(108, 117, 125);
-			lblTotalCount.Location = new Point(470, 14);
+			lblTotalCount.Location = new Point(500, 14);
 			lblTotalCount.Name = "lblTotalCount";
-			lblTotalCount.Size = new Size(180, 23);
+			lblTotalCount.Size = new Size(150, 23);
 			lblTotalCount.TabIndex = 4;
 			lblTotalCount.Text = "Tổng số: 0 khách hàng";
 			lblTotalCount.TextAlign = ContentAlignment.MiddleRight;
 
-			// 
+			//
 			// dgvCustomers
-			// 
+			//
 			dgvCustomers.AllowUserToAddRows = false;
 			dgvCustomers.AllowUserToDeleteRows = false;
 			dgvCustomers.AllowUserToResizeRows = false;
+			dgvCustomers.AutoGenerateColumns = false;
 			dgvCustomers.BackgroundColor = Color.White;
 			dgvCustomers.BorderStyle = BorderStyle.None;
 			dgvCustomers.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
 			dgvCustomers.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
-			
+
 			dgvHeaderStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
 			dgvHeaderStyle.BackColor = Color.FromArgb(24, 30, 54);
 			dgvHeaderStyle.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
@@ -606,9 +607,9 @@ namespace HotelBookingManagement.Controls
 			dgvCustomers.CellClick += dgvCustomers_CellClick;
 			dgvCustomers.CellFormatting += dgvCustomers_CellFormatting;
 
-			// 
+			//
 			// colSTT
-			// 
+			//
 			colSTT.HeaderText = "STT";
 			colSTT.MinimumWidth = 45;
 			colSTT.Name = "colSTT";
@@ -616,9 +617,9 @@ namespace HotelBookingManagement.Controls
 			colSTT.Width = 55;
 			colSTT.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
-			// 
+			//
 			// colCustomerId
-			// 
+			//
 			colCustomerId.DataPropertyName = "CustomerId";
 			colCustomerId.HeaderText = "Mã KH";
 			colCustomerId.MinimumWidth = 60;
@@ -626,9 +627,9 @@ namespace HotelBookingManagement.Controls
 			colCustomerId.ReadOnly = true;
 			colCustomerId.Width = 70;
 
-			// 
+			//
 			// colFullName
-			// 
+			//
 			colFullName.DataPropertyName = "FullName";
 			colFullName.HeaderText = "Họ và tên";
 			colFullName.MinimumWidth = 140;
@@ -636,9 +637,9 @@ namespace HotelBookingManagement.Controls
 			colFullName.ReadOnly = true;
 			colFullName.Width = 160;
 
-			// 
+			//
 			// colPhone
-			// 
+			//
 			colPhone.DataPropertyName = "Phone";
 			colPhone.HeaderText = "Số điện thoại";
 			colPhone.MinimumWidth = 110;
@@ -646,9 +647,9 @@ namespace HotelBookingManagement.Controls
 			colPhone.ReadOnly = true;
 			colPhone.Width = 120;
 
-			// 
+			//
 			// colIdentityNumber
-			// 
+			//
 			colIdentityNumber.DataPropertyName = "IdentityNumber";
 			colIdentityNumber.HeaderText = "CCCD/Hộ chiếu";
 			colIdentityNumber.MinimumWidth = 120;
@@ -656,9 +657,9 @@ namespace HotelBookingManagement.Controls
 			colIdentityNumber.ReadOnly = true;
 			colIdentityNumber.Width = 130;
 
-			// 
+			//
 			// colEmail
-			// 
+			//
 			colEmail.DataPropertyName = "Email";
 			colEmail.HeaderText = "Email";
 			colEmail.MinimumWidth = 130;
@@ -666,9 +667,9 @@ namespace HotelBookingManagement.Controls
 			colEmail.ReadOnly = true;
 			colEmail.Width = 140;
 
-			// 
+			//
 			// colDateOfBirth
-			// 
+			//
 			colDateOfBirth.DataPropertyName = "DateOfBirth";
 			colDateOfBirth.HeaderText = "Ngày sinh";
 			colDateOfBirth.MinimumWidth = 90;
@@ -676,9 +677,9 @@ namespace HotelBookingManagement.Controls
 			colDateOfBirth.ReadOnly = true;
 			colDateOfBirth.Width = 100;
 
-			// 
+			//
 			// colAddress
-			// 
+			//
 			colAddress.DataPropertyName = "Address";
 			colAddress.HeaderText = "Địa chỉ";
 			colAddress.MinimumWidth = 150;
@@ -686,9 +687,9 @@ namespace HotelBookingManagement.Controls
 			colAddress.ReadOnly = true;
 			colAddress.Width = 180;
 
-			// 
+			//
 			// colCreatedAt
-			// 
+			//
 			colCreatedAt.DataPropertyName = "CreatedAt";
 			colCreatedAt.HeaderText = "Ngày tạo";
 			colCreatedAt.MinimumWidth = 120;
@@ -696,9 +697,9 @@ namespace HotelBookingManagement.Controls
 			colCreatedAt.ReadOnly = true;
 			colCreatedAt.Width = 130;
 
-			// 
+			//
 			// CustomersControl
-			// 
+			//
 			AutoScaleDimensions = new SizeF(8F, 20F);
 			AutoScaleMode = AutoScaleMode.Font;
 			BackColor = Color.FromArgb(244, 246, 249);

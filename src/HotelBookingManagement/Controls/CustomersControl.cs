@@ -34,6 +34,9 @@ namespace HotelBookingManagement.Controls
 
 		private void CustomersControl_Load(object? sender, EventArgs e)
 		{
+			// Ngăn DataGridView tự động sinh cột từ navigation properties (như Bookings)
+			dgvCustomers.AutoGenerateColumns = false;
+
 			// Cấu hình định dạng hiển thị cho các cột ngày tháng trên DataGridView
 			colDateOfBirth.DefaultCellStyle.Format = "dd/MM/yyyy";
 			colCreatedAt.DefaultCellStyle.Format = "dd/MM/yyyy HH:mm";
