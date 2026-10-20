@@ -12,5 +12,6 @@ public class Customers
 	public string? Email { get; set; } // ? cho phép null
 	public string IdentityNumber { get; set; } = string.Empty; // CCCD / Hộ chiếu
 	public string? Address { get; set; }
-	public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime? DateOfBirth { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
 }

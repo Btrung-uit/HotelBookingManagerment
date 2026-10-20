@@ -6,14 +6,13 @@ using Microsoft.Data.SqlClient;
 namespace HotelBookingManagement.Data.Database;
 public static class DatabaseConnection
 {
-	// Chuỗi kết nối mặc định sử dụng Windows Authentication
-	// Lưu ý: TrustServerCertificate=True là bắt buộc đối với Microsoft.Data.SqlClient thế hệ mới
-	public static string ConnectionString { get; set; } = @"Server=localhost\SQL2025DEV;Database=HotelBookingDB;Integrated Security=True;TrustServerCertificate=True;";
-
-	/// <summary>
-	/// Tạo và trả về một đối tượng SqlConnection mới
-	/// </summary>
-	public static SqlConnection GetConnection()
+    // Chuỗi kết nối mặc định sử dụng Windows Authentication
+    // Lưu ý: TrustServerCertificate=True là bắt buộc đối với Microsoft.Data.SqlClient thế hệ mới
+    public static string ConnectionString = @"Server=DÁN_TÊN_SERVER_VỪA_COPY_VÀO_ĐÂY; Database=HotelBookingDB; Integrated Security=True; TrustServerCertificate=True;";
+    /// <summary>
+    /// Tạo và trả về một đối tượng SqlConnection mới
+    /// </summary>
+    public static SqlConnection GetConnection()
 	{
 		return new SqlConnection(ConnectionString);
 	}
