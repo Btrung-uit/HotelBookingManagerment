@@ -69,15 +69,15 @@ public class CustomerService : ICustomerService
 	{
 		errorMessage = string.Empty;
 
-		if (!ValidateCustomer(customer, null, out errorMessage))
-		{
-			return false;
-		}
-
-		customer.CreatedAt = DateTime.Now;
-
 		try
 		{
+			if (!ValidateCustomer(customer, null, out errorMessage))
+			{
+				return false;
+			}
+
+			customer.CreatedAt = DateTime.Now;
+
 			int newId = _customerRepository.Add(customer);
 			if (newId > 0)
 			{
@@ -111,19 +111,25 @@ public class CustomerService : ICustomerService
 	{
 		errorMessage = string.Empty;
 
+		if (customer == null)
+		{
+			errorMessage = "Dữ liệu khách hàng không được để trống (null)!";
+			return false;
+		}
+
 		if (customer.CustomerId <= 0)
 		{
 			errorMessage = "Mã khách hàng không hợp lệ!";
 			return false;
 		}
 
-		if (!ValidateCustomer(customer, customer.CustomerId, out errorMessage))
-		{
-			return false;
-		}
-
 		try
 		{
+			if (!ValidateCustomer(customer, customer.CustomerId, out errorMessage))
+			{
+				return false;
+			}
+
 			bool success = _customerRepository.Update(customer);
 			if (!success)
 			{
