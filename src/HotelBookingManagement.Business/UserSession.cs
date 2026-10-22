@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using HotelBookingManagement.Models;
 
 namespace HotelBookingManagement.Business;
@@ -10,7 +10,7 @@ public class UserSession
 {
 	// Dấu ? biểu thị có thể null (khi chưa ai đăng nhập)
 	// private set để bảo vệ: chỉ cho phép gán thông qua hàm Login() bên dưới
-	public static Users? CurrentUser { get; private set; }
+	public static User? CurrentUser { get; private set; }
 
 	// Kiểm tra xem hiện tại đã có người đăng nhập hay chưa
 	public static bool IsLoggedIn => CurrentUser != null;
@@ -22,7 +22,7 @@ public class UserSession
 	public static bool IsReceptionist => CurrentUser?.Role.Equals("Receptionist", StringComparison.OrdinalIgnoreCase) == true;
 
 	// Thiết lập phiên làm việc khi người dùng đăng nhập thành công
-	public static void Login(Users user)
+	public static void Login(User user)
 	{
 		CurrentUser = user ?? throw new ArgumentNullException(nameof(user));
 	}
