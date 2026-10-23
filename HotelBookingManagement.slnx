@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="src/HotelBookingManagement.Business/HotelBookingManagement.Business.csproj" />
+  <Project Path="src/HotelBookingManagement.Data/HotelBookingManagement.Data.csproj" />
+  <Project Path="src/HotelBookingManagement.Models/HotelBookingManagement.Models.csproj" />
+  <Project Path="src/HotelBookingManagement/HotelBookingManagement.csproj" />
+</Solution>
