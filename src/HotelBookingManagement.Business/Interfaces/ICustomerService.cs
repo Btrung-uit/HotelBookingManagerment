@@ -57,4 +57,11 @@ public interface ICustomerService
 	/// <param name="errorMessage">Thông báo lỗi nếu vi phạm ràng buộc dữ liệu hoặc lỗi hệ thống</param>
 	/// <returns>True nếu xóa thành công</returns>
 	bool DeleteCustomer(int customerId, out string errorMessage);
+
+	/// <summary>
+	/// Lấy lịch sử đặt phòng của một khách hàng (Nhiệm vụ CUS05)
+	/// </summary>
+	/// <param name="customerId">Mã khách hàng cần tra cứu</param>
+	/// <returns>Danh sách các đơn đặt phòng của khách hàng kèm chi tiết phòng và thanh toán</returns>
+	IEnumerable<Booking> GetCustomerBookingHistory(int customerId);
 }

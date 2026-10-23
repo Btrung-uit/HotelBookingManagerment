@@ -5,12 +5,13 @@ using System.Linq;
 using System.Windows.Forms;
 using HotelBookingManagement.Business.Interfaces;
 using HotelBookingManagement.Business.Services;
+using HotelBookingManagement.Forms;
 using HotelBookingManagement.Models;
 
 namespace HotelBookingManagement.Controls
 {
 	/// <summary>
-	/// Giao diện Quản lý Khách hàng (TV02 - Screen 03 / Task CUS01 -> CUS04)
+	/// Giao diện Quản lý Khách hàng (TV02 - Screen 03 / Task CUS01 -> CUS05)
 	/// Tuân thủ kiến trúc 3 lớp: Gọi ICustomerService, không truy vấn trực tiếp CSDL.
 	/// </summary>
 	public partial class CustomersControl : UserControl
@@ -99,6 +100,20 @@ namespace HotelBookingManagement.Controls
 			if (row.DataBoundItem is Customer customer)
 			{
 				PopulateForm(customer);
+			}
+		}
+
+		/// <summary>
+		/// Hỗ trợ nhấp đúp (Double-click) vào dòng khách hàng trên bảng để xem nhanh lịch sử đặt phòng (CUS05)
+		/// </summary>
+		private void dgvCustomers_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
+		{
+			if (e.RowIndex < 0 || e.RowIndex >= dgvCustomers.Rows.Count) return;
+
+			var row = dgvCustomers.Rows[e.RowIndex];
+			if (row.DataBoundItem is Customer customer)
+			{
+				OpenBookingHistory(customer.CustomerId, customer.FullName);
 			}
 		}
 
@@ -248,6 +263,42 @@ namespace HotelBookingManagement.Controls
 
 			LoadCustomerData();
 			ResetForm();
+		}
+
+		/// <summary>
+		/// Mở màn hình xem lịch sử đặt phòng của khách hàng đang chọn (Task CUS05)
+		/// </summary>
+		private void btnBookingHistory_Click(object? sender, EventArgs e)
+		{
+			OpenBookingHistoryForCurrentCustomer();
+		}
+
+		private void OpenBookingHistoryForCurrentCustomer()
+		{
+			if (int.TryParse(txtCustomerId.Text, out int customerId) && customerId > 0)
+			{
+				OpenBookingHistory(customerId, txtFullName.Text.Trim());
+				return;
+			}
+
+			// Nếu ô nhập chưa nạp ID hợp lệ, thử lấy từ dòng đang được chọn trên DataGridView
+			if (dgvCustomers.CurrentRow?.DataBoundItem is Customer selectedCustomer)
+			{
+				OpenBookingHistory(selectedCustomer.CustomerId, selectedCustomer.FullName);
+				return;
+			}
+
+			MessageBox.Show(
+				"Vui lòng chọn một khách hàng từ danh sách để xem lịch sử đặt phòng!",
+				"Chưa chọn khách hàng",
+				MessageBoxButtons.OK,
+				MessageBoxIcon.Warning);
+		}
+
+		private void OpenBookingHistory(int customerId, string customerName)
+		{
+			using var historyForm = new FrmCustomerBookingHistory(customerId, customerName, _customerService);
+			historyForm.ShowDialog(this);
 		}
 
 		/// <summary>
