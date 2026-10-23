@@ -19,6 +19,7 @@ namespace HotelBookingManagement.Business.Interfaces
         Booking CreateBooking(Booking newBooking, List<int> selectedRoomIds);
 
         // 5. Task BOOK07: Hủy booking
-        bool CancelBooking(int bookingId);
+        bool CancelBooking(int bookingId, out string errorMessage);
+        IEnumerable<Booking> GetAll();
     }
 }

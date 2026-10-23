@@ -19,7 +19,7 @@ namespace HotelBookingManagement.Forms
         private readonly BookingService _bookingService;
         private int _currentCustomerId = -1;
         // Biến lưu thông tin khách hàng hiện tại
-        private Customers _currentCustomer;
+        private Customer _currentCustomer;
 
         public FrmBooking()
         {
@@ -57,7 +57,7 @@ namespace HotelBookingManagement.Forms
             }
 
             // Gọi DB thật qua tầng Business
-            _currentCustomer = _customerService.FindCustomer(keyword);
+            _currentCustomer = _customerService.GetCustomerByPhone(keyword);
 
             if (_currentCustomer != null)
             {

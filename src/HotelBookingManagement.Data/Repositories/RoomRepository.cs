@@ -1,5 +1,6 @@
 ﻿using HotelBookingManagement.Data.Database;
 using HotelBookingManagement.Data.Interfaces;
+using HotelBookingManagement.Models;
 using Microsoft.Data.SqlClient;
 using System;
 using System.Data;
@@ -9,6 +10,31 @@ namespace HotelBookingManagement.Data.Repositories
     public class RoomRepository : IRoomRepository
     {
         private readonly string _connectionString = DatabaseConnection.ConnectionString;
+
+        public int Add(Room room)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int CountByStatus(string status)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Delete(int roomId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool ExistsByRoomNumber(string roomNumber, int? excludeRoomId = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<Room> GetAll()
+        {
+            throw new NotImplementedException();
+        }
 
         public DataTable GetAvailableRooms(DateTime checkInDate, DateTime checkOutDate)
         {
@@ -43,6 +69,41 @@ namespace HotelBookingManagement.Data.Repositories
                     }
                 }
             }
+        }
+
+        public IEnumerable<Room> GetAvailableRooms(int? roomTypeId = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<Room> GetAvailableRoomsByDateRange(DateTime checkIn, DateTime checkOut, int? roomTypeId = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<Room> GetByFilter(int? roomTypeId = null, string? status = null, int? floor = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Room? GetById(int roomId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Room? GetByRoomNumber(string roomNumber)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Update(Room room)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool UpdateStatus(int roomId, string newStatus)
+        {
+            throw new NotImplementedException();
         }
     }
 }

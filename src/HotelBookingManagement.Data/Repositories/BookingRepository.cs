@@ -4,12 +4,23 @@ using HotelBookingManagement.Models;
 using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
+using System.Data;
 
 namespace HotelBookingManagement.Data.Repositories
 {
     public class BookingRepository : IBookingRepository
     {
         private readonly string _connectionString = DatabaseConnection.ConnectionString;
+
+        public int Add(Booking booking)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int AddWithDetails(Booking booking, IReadOnlyCollection<BookingDetail> details)
+        {
+            throw new NotImplementedException();
+        }
 
         public Booking CreateBooking(Booking newBooking, List<int> selectedRoomIds)
         {
@@ -65,6 +76,90 @@ namespace HotelBookingManagement.Data.Repositories
                     }
                 }
             }
+        }
+
+        public IEnumerable<Booking> GetAll()
+        {
+            var bookings = new List<Booking>();
+            string query = "SELECT * FROM dbo.Bookings ORDER BY BookingId DESC";
+
+            using var connection = DatabaseConnection.GetConnection();
+            using var command = new SqlCommand(query, connection);
+
+            connection.Open();
+            using var reader = command.ExecuteReader();
+
+            while (reader.Read())
+            {
+                var booking = new Booking
+                {
+                    BookingId = Convert.ToInt32(reader["BookingId"]),
+                    CustomerId = Convert.ToInt32(reader["CustomerId"]),
+                    BookingDate = Convert.ToDateTime(reader["BookingDate"]),
+                    CheckInDate = Convert.ToDateTime(reader["CheckInDate"]),
+                    CheckOutDate = Convert.ToDateTime(reader["CheckOutDate"]),
+                    Status = reader["Status"].ToString(),
+                    TotalAmount = Convert.ToDecimal(reader["TotalAmount"]),
+                    CreatedBy = Convert.ToInt32(reader["CreatedBy"]),
+                    CreatedAt = Convert.ToDateTime(reader["CreatedAt"])
+                };
+                bookings.Add(booking);
+            }
+
+            return bookings;
+        }
+
+        public IEnumerable<int> GetBookedRoomIdsByDateRange(DateTime checkIn, DateTime checkOut, int? excludeBookingId = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<Booking> GetByCustomerId(int customerId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Booking? GetById(int bookingId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<Booking> GetByStatus(string status)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<BookingDetail> GetDetailsByBookingId(int bookingId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool HasOverlappingBooking(int roomId, DateTime checkIn, DateTime checkOut, int? excludeBookingId = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Update(Booking booking)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool UpdateStatus(int bookingId, string status)
+        {
+            const string query = @"
+        UPDATE dbo.Bookings
+        SET Status = @Status, 
+            UpdatedAt = GETDATE()
+        WHERE BookingId = @BookingId;";
+
+            using var connection = DatabaseConnection.GetConnection();
+            using var command = new SqlCommand(query, connection);
+
+            command.Parameters.Add("@BookingId", SqlDbType.Int).Value = bookingId;
+            command.Parameters.Add("@Status", SqlDbType.NVarChar, 50).Value = status.Trim();
+
+            connection.Open();
+            return command.ExecuteNonQuery() > 0;
         }
     }
 }

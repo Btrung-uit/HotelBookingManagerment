@@ -9,8 +9,7 @@ namespace HotelBookingManagement.Data.Interfaces;
 /// Hợp đồng truy xuất dữ liệu cho bảng dbo.Rooms (ADO.NET)
 /// Phục vụ các nghiệp vụ: CRUD phòng, tìm kiếm theo số phòng, lọc theo tầng/loại/trạng thái, cập nhật trạng thái phòng.
 /// </summary>
-namespace HotelBookingManagement.Data.Interfaces
-{
+
 public interface IRoomRepository
 {
 	/// <summary>
@@ -78,4 +77,4 @@ public interface IRoomRepository
 	int CountByStatus(string status);
         DataTable GetAvailableRooms(DateTime checkInDate, DateTime checkOutDate);
     }
-}
+
