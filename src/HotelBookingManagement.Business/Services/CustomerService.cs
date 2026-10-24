@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.Data.SqlClient;
 using HotelBookingManagement.Business.Interfaces;
@@ -16,19 +17,28 @@ namespace HotelBookingManagement.Business.Services;
 public class CustomerService : ICustomerService
 {
 	private readonly ICustomerRepository _customerRepository;
+	private readonly IBookingRepository _bookingRepository;
 
 	/// <summary>
-	/// Constructor hỗ trợ Dependency Injection
+	/// Constructor hỗ trợ Dependency Injection với đầy đủ Repository
 	/// </summary>
-	public CustomerService(ICustomerRepository customerRepository)
+	public CustomerService(ICustomerRepository customerRepository, IBookingRepository bookingRepository)
 	{
 		_customerRepository = customerRepository ?? throw new ArgumentNullException(nameof(customerRepository));
+		_bookingRepository = bookingRepository ?? throw new ArgumentNullException(nameof(bookingRepository));
+	}
+
+	/// <summary>
+	/// Constructor hỗ trợ Dependency Injection tương thích ngược
+	/// </summary>
+	public CustomerService(ICustomerRepository customerRepository) : this(customerRepository, new BookingRepository())
+	{
 	}
 
 	/// <summary>
 	/// Constructor mặc định phục vụ WinForms khởi tạo nhanh
 	/// </summary>
-	public CustomerService() : this(new CustomerRepository())
+	public CustomerService() : this(new CustomerRepository(), new BookingRepository())
 	{
 	}
 
@@ -193,6 +203,32 @@ public class CustomerService : ICustomerService
 		{
 			errorMessage = $"Lỗi hệ thống: {ex.Message}";
 			return false;
+		}
+	}
+
+	/// <summary>
+	/// Lấy toàn bộ lịch sử đặt phòng của một khách hàng (Nhiệm vụ CUS05)
+	/// </summary>
+	/// <param name="customerId">Mã khách hàng cần tra cứu</param>
+	/// <returns>Danh sách các đơn đặt phòng kèm chi tiết phòng và thanh toán</returns>
+	public IEnumerable<Booking> GetCustomerBookingHistory(int customerId)
+	{
+		if (customerId <= 0)
+		{
+			return Enumerable.Empty<Booking>();
+		}
+
+		try
+		{
+			return _bookingRepository.GetByCustomerId(customerId);
+		}
+		catch (SqlException ex)
+		{
+			throw new InvalidOperationException($"Không thể kết nối đến cơ sở dữ liệu để lấy lịch sử đặt phòng: {ex.Message}", ex);
+		}
+		catch (Exception ex)
+		{
+			throw new InvalidOperationException($"Đã xảy ra lỗi khi tải lịch sử đặt phòng: {ex.Message}", ex);
 		}
 	}
 
