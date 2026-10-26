@@ -52,6 +52,7 @@ namespace HotelBookingManagement.Controls
 			btnUpdate = new Button();
 			btnDelete = new Button();
 			btnClear = new Button();
+			btnBookingHistory = new Button();
 
 			panelRightGrid = new Panel();
 			grpCustomerList = new GroupBox();
@@ -345,19 +346,20 @@ namespace HotelBookingManagement.Controls
 			txtAddress.Name = "txtAddress";
 			txtAddress.PlaceholderText = "Địa chỉ cư trú khách hàng (tùy chọn)...";
 			txtAddress.ScrollBars = ScrollBars.Vertical;
-			txtAddress.Size = new Size(346, 60);
+			txtAddress.Size = new Size(346, 56);
 			txtAddress.TabIndex = 13;
 
 			//
 			// panelActionButtons
 			//
+			panelActionButtons.Controls.Add(btnBookingHistory);
 			panelActionButtons.Controls.Add(btnClear);
 			panelActionButtons.Controls.Add(btnDelete);
 			panelActionButtons.Controls.Add(btnUpdate);
 			panelActionButtons.Controls.Add(btnAdd);
-			panelActionButtons.Location = new Point(16, 460);
+			panelActionButtons.Location = new Point(16, 452);
 			panelActionButtons.Name = "panelActionButtons";
-			panelActionButtons.Size = new Size(346, 95);
+			panelActionButtons.Size = new Size(346, 115);
 			panelActionButtons.TabIndex = 14;
 
 			//
@@ -369,9 +371,9 @@ namespace HotelBookingManagement.Controls
 			btnAdd.FlatStyle = FlatStyle.Flat;
 			btnAdd.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
 			btnAdd.ForeColor = Color.White;
-			btnAdd.Location = new Point(0, 5);
+			btnAdd.Location = new Point(0, 2);
 			btnAdd.Name = "btnAdd";
-			btnAdd.Size = new Size(165, 38);
+			btnAdd.Size = new Size(165, 34);
 			btnAdd.TabIndex = 0;
 			btnAdd.Text = "➕ Thêm mới";
 			btnAdd.UseVisualStyleBackColor = false;
@@ -386,9 +388,9 @@ namespace HotelBookingManagement.Controls
 			btnUpdate.FlatStyle = FlatStyle.Flat;
 			btnUpdate.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
 			btnUpdate.ForeColor = Color.White;
-			btnUpdate.Location = new Point(181, 5);
+			btnUpdate.Location = new Point(181, 2);
 			btnUpdate.Name = "btnUpdate";
-			btnUpdate.Size = new Size(165, 38);
+			btnUpdate.Size = new Size(165, 34);
 			btnUpdate.TabIndex = 1;
 			btnUpdate.Text = "✏️ Cập nhật";
 			btnUpdate.UseVisualStyleBackColor = false;
@@ -403,9 +405,9 @@ namespace HotelBookingManagement.Controls
 			btnDelete.FlatStyle = FlatStyle.Flat;
 			btnDelete.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
 			btnDelete.ForeColor = Color.White;
-			btnDelete.Location = new Point(0, 50);
+			btnDelete.Location = new Point(0, 40);
 			btnDelete.Name = "btnDelete";
-			btnDelete.Size = new Size(165, 38);
+			btnDelete.Size = new Size(165, 34);
 			btnDelete.TabIndex = 2;
 			btnDelete.Text = "🗑️ Xóa";
 			btnDelete.UseVisualStyleBackColor = false;
@@ -420,13 +422,30 @@ namespace HotelBookingManagement.Controls
 			btnClear.FlatStyle = FlatStyle.Flat;
 			btnClear.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
 			btnClear.ForeColor = Color.White;
-			btnClear.Location = new Point(181, 50);
+			btnClear.Location = new Point(181, 40);
 			btnClear.Name = "btnClear";
-			btnClear.Size = new Size(165, 38);
+			btnClear.Size = new Size(165, 34);
 			btnClear.TabIndex = 3;
 			btnClear.Text = "🔄 Làm mới";
 			btnClear.UseVisualStyleBackColor = false;
 			btnClear.Click += btnClear_Click;
+
+			//
+			// btnBookingHistory
+			//
+			btnBookingHistory.BackColor = Color.FromArgb(111, 66, 193);
+			btnBookingHistory.Cursor = Cursors.Hand;
+			btnBookingHistory.FlatAppearance.BorderSize = 0;
+			btnBookingHistory.FlatStyle = FlatStyle.Flat;
+			btnBookingHistory.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
+			btnBookingHistory.ForeColor = Color.White;
+			btnBookingHistory.Location = new Point(0, 78);
+			btnBookingHistory.Name = "btnBookingHistory";
+			btnBookingHistory.Size = new Size(346, 35);
+			btnBookingHistory.TabIndex = 4;
+			btnBookingHistory.Text = "📜 Lịch sử đặt phòng (CUS05)";
+			btnBookingHistory.UseVisualStyleBackColor = false;
+			btnBookingHistory.Click += btnBookingHistory_Click;
 
 			//
 			// panelRightGrid
@@ -605,6 +624,7 @@ namespace HotelBookingManagement.Controls
 			dgvCustomers.Size = new Size(656, 478);
 			dgvCustomers.TabIndex = 1;
 			dgvCustomers.CellClick += dgvCustomers_CellClick;
+			dgvCustomers.CellDoubleClick += dgvCustomers_CellDoubleClick;
 			dgvCustomers.CellFormatting += dgvCustomers_CellFormatting;
 
 			//
@@ -754,6 +774,7 @@ namespace HotelBookingManagement.Controls
 		private Button btnUpdate;
 		private Button btnDelete;
 		private Button btnClear;
+		private Button btnBookingHistory;
 
 		private Panel panelRightGrid;
 		private GroupBox grpCustomerList;
