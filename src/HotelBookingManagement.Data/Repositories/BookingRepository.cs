@@ -496,15 +496,72 @@ public class BookingRepository : IBookingRepository
 		}
 	}
 
-	private static Booking MapReaderToBooking(SqlDataReader reader)
-	{
-		var booking = new Booking
-		{
-			BookingId = reader.GetInt32(reader.GetOrdinal("BookingId")),
-			CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
-			BookingDate = reader.GetDateTime(reader.GetOrdinal("BookingDate")),
-			CheckInDate = reader.GetDateTime(reader.GetOrdinal("CheckInDate")),
-			CheckOutDate = reader.GetDateTime(reader.GetOrdinal("CheckOutDate")),
-			Status = reader.GetString(reader.GetOrdinal("Status")),
-			TotalAmount = reader.GetDecimal(reader.GetOrdinal("TotalAmount")),
-			CreatedBy = reader.GetInt32(reader.GetOrdinal
+    private static Booking MapReaderToBooking(SqlDataReader reader)
+    {
+        var booking = new Booking
+        {
+            BookingId = reader.GetInt32(reader.GetOrdinal("BookingId")),
+            CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
+            BookingDate = reader.GetDateTime(reader.GetOrdinal("BookingDate")),
+            CheckInDate = reader.GetDateTime(reader.GetOrdinal("CheckInDate")),
+            CheckOutDate = reader.GetDateTime(reader.GetOrdinal("CheckOutDate")),
+            Status = reader.GetString(reader.GetOrdinal("Status")),
+            TotalAmount = reader.GetDecimal(reader.GetOrdinal("TotalAmount")),
+            CreatedBy = reader.GetInt32(reader.GetOrdinal("CreatedBy")),
+            CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt")),
+            Customer = new Customer
+            {
+                CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
+                FullName = reader.GetString(reader.GetOrdinal("CustomerName")),
+                Phone = reader.GetString(reader.GetOrdinal("CustomerPhone")),
+                IdentityNumber = reader.GetString(reader.GetOrdinal("CustomerIdentity"))
+            }
+        };
+
+        if (!reader.IsDBNull(reader.GetOrdinal("StaffName")))
+        {
+            booking.CreatedByUser = new User
+            {
+                UserId = booking.CreatedBy,
+                FullName = reader.GetString(reader.GetOrdinal("StaffName")),
+                Username = reader.IsDBNull(reader.GetOrdinal("StaffUsername")) ? string.Empty : reader.GetString(reader.GetOrdinal("StaffUsername"))
+            };
+        }
+
+        return booking;
+    }
+
+    private static BookingDetail MapReaderToBookingDetail(SqlDataReader reader, Booking? parentBooking = null)
+    {
+        var roomType = new RoomType
+        {
+            RoomTypeId = reader.GetInt32(reader.GetOrdinal("RoomTypeId")),
+            Name = reader.GetString(reader.GetOrdinal("RoomTypeName")),
+            Capacity = reader.GetInt32(reader.GetOrdinal("Capacity")),
+            PricePerNight = reader.GetDecimal(reader.GetOrdinal("StandardPricePerNight"))
+        };
+
+        var room = new Room
+        {
+            RoomId = reader.GetInt32(reader.GetOrdinal("RoomId")),
+            RoomNumber = reader.GetString(reader.GetOrdinal("RoomNumber")),
+            RoomTypeId = roomType.RoomTypeId,
+            Floor = reader.GetInt32(reader.GetOrdinal("Floor")),
+            Status = reader.GetString(reader.GetOrdinal("RoomStatus")),
+            Description = reader.IsDBNull(reader.GetOrdinal("RoomDescription")) ? null : reader.GetString(reader.GetOrdinal("RoomDescription")),
+            RoomType = roomType
+        };
+
+        return new BookingDetail
+        {
+            BookingDetailId = reader.GetInt32(reader.GetOrdinal("BookingDetailId")),
+            BookingId = reader.GetInt32(reader.GetOrdinal("BookingId")),
+            RoomId = room.RoomId,
+            PricePerNight = reader.GetDecimal(reader.GetOrdinal("PricePerNight")),
+            NumberOfNights = reader.GetInt32(reader.GetOrdinal("NumberOfNights")),
+            Subtotal = reader.GetDecimal(reader.GetOrdinal("Subtotal")),
+            Booking = parentBooking,
+            Room = room
+        };
+    }
+}

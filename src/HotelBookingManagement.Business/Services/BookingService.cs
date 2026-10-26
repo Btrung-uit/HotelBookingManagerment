@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotelBookingManagement.Data.Interfaces;
 using HotelBookingManagement.Data.Repositories;
 using HotelBookingManagement.Business.Interfaces;
@@ -10,33 +11,86 @@ namespace HotelBookingManagement.Business.Services
     public class BookingService : IBookingService
     {
         private readonly IBookingRepository _bookingRepo;
-        public BookingService()
+        private readonly IRoomRepository _roomRepo;
+
+        public BookingService() : this(new BookingRepository(), new RoomRepository())
         {
-            _bookingRepo = new BookingRepository();
         }
 
-        // --- TASK BOOK06 (Bạn phụ trách) ---
-        public Booking CreateBooking(Booking newBooking, List<int> selectedRoomIds)
+        public BookingService(IBookingRepository bookingRepo, IRoomRepository roomRepo)
         {
-            return _bookingRepo.CreateBooking(newBooking, selectedRoomIds);
+            _bookingRepo = bookingRepo ?? throw new ArgumentNullException(nameof(bookingRepo));
+            _roomRepo = roomRepo ?? throw new ArgumentNullException(nameof(roomRepo));
         }
 
-        // --- CÁC HÀM CỦA LEADER VÀ TEAM (Tạm để trống để không báo lỗi) ---
+        // --- TASK BOOK05 & BOOK06: Tạo Booking và chặn trùng lịch ---
+        public Booking? CreateBooking(Booking newBooking, List<int> selectedRoomIds)
+        {
+            if (newBooking == null || selectedRoomIds == null || selectedRoomIds.Count == 0)
+                return null;
+
+            if (newBooking.CheckOutDate.Date <= newBooking.CheckInDate.Date)
+                throw new InvalidOperationException("Ngày Check-out phải lớn hơn ngày Check-in!");
+
+            // Kiểm tra chống trùng lịch (BOOK05) cho từng phòng trước khi lưu
+            foreach (int roomId in selectedRoomIds.Distinct())
+            {
+                if (_bookingRepo.HasOverlappingBooking(roomId, newBooking.CheckInDate, newBooking.CheckOutDate))
+                {
+                    throw new InvalidOperationException($"Phòng mã #{roomId} vừa có người đặt trong khoảng thời gian này. Vui lòng làm mới danh sách phòng!");
+                }
+            }
+
+            if (_bookingRepo is BookingRepository concreteRepo)
+            {
+                return concreteRepo.CreateBooking(newBooking, selectedRoomIds);
+            }
+
+            return null;
+        }
+
+        // --- TASK BOOK04: Lấy danh sách phòng trống ---
         public List<Room> GetAvailableRooms(DateTime checkInDate, DateTime checkOutDate, int roomTypeId)
         {
-            throw new NotImplementedException();
+            int? filterTypeId = roomTypeId > 0 ? roomTypeId : null;
+            return _roomRepo.GetAvailableRoomsByDateRange(checkInDate, checkOutDate, filterTypeId).ToList();
         }
 
+        // --- TASK BOOK05: Kiểm tra phòng có trống trong khoảng ngày không ---
         public bool IsRoomAvailable(int roomId, DateTime checkInDate, DateTime checkOutDate)
         {
-            throw new NotImplementedException();
+            if (roomId <= 0 || checkOutDate <= checkInDate)
+                return false;
+
+            var room = _roomRepo.GetById(roomId);
+            if (room == null || !string.Equals(room.Status, "AVAILABLE", StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            return !_bookingRepo.HasOverlappingBooking(roomId, checkInDate, checkOutDate);
         }
 
+        // --- Tính toán chi phí dự kiến ---
         public decimal EstimateBookingCost(List<int> roomIds, DateTime checkInDate, DateTime checkOutDate)
         {
-            throw new NotImplementedException();
+            if (roomIds == null || roomIds.Count == 0 || checkOutDate <= checkInDate)
+                return 0m;
+
+            int nights = Math.Max(1, (checkOutDate.Date - checkInDate.Date).Days);
+            decimal totalPerNight = 0m;
+
+            foreach (int roomId in roomIds.Distinct())
+            {
+                var room = _roomRepo.GetById(roomId);
+                if (room?.RoomType != null)
+                {
+                    totalPerNight += room.RoomType.PricePerNight;
+                }
+            }
+
+            return totalPerNight * nights;
         }
 
+        // --- TASK BOOK07: Hủy Booking ---
         public bool CancelBooking(int bookingId, out string errorMessage)
         {
             errorMessage = string.Empty;
@@ -55,7 +109,6 @@ namespace HotelBookingManagement.Business.Services
                     return false;
                 }
 
-                // Chặn các trạng thái không được phép hủy
                 if (currentBooking.Status == "CANCELLED")
                 {
                     errorMessage = "Đơn đặt phòng này đã được hủy từ trước.";
@@ -67,7 +120,6 @@ namespace HotelBookingManagement.Business.Services
                     return false;
                 }
 
-                // Nếu hợp lệ, tiến hành gọi xuống tầng Data để cập nhật
                 bool success = _bookingRepo.UpdateStatus(bookingId, "CANCELLED");
                 if (!success)
                 {
@@ -81,6 +133,7 @@ namespace HotelBookingManagement.Business.Services
                 return false;
             }
         }
+
         public IEnumerable<Booking> GetAll()
         {
             return _bookingRepo.GetAll();
