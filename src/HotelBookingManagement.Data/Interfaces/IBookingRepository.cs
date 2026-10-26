@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using HotelBookingManagement.Models;
 
@@ -8,6 +8,7 @@ namespace HotelBookingManagement.Data.Interfaces;
 /// Hợp đồng truy xuất dữ liệu cho bảng dbo.Bookings và dbo.BookingDetails (ADO.NET)
 /// Phục vụ các nghiệp vụ: Đặt phòng, kiểm tra trùng lịch (BR-02), tìm kiếm theo khách hàng, check-in, check-out.
 /// </summary>
+
 public interface IBookingRepository
 {
 	/// <summary>
@@ -84,4 +85,6 @@ public interface IBookingRepository
 	/// Lấy danh sách các dòng chi tiết phòng trong một đơn đặt phòng
 	/// </summary>
 	IEnumerable<BookingDetail> GetDetailsByBookingId(int bookingId);
-}
+        Booking CreateBooking(Booking newBooking, List<int> selectedRoomIds);
+    }
+

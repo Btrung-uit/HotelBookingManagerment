@@ -176,6 +176,7 @@
             dgvDanhSachPhong.Name = "dgvDanhSachPhong";
             dgvDanhSachPhong.Size = new Size(354, 139);
             dgvDanhSachPhong.TabIndex = 2;
+            dgvDanhSachPhong.CellContentClick += dgvDanhSachPhong_CellContentClick;
             // 
             // btnTaoBooking
             // 

@@ -4,16 +4,12 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.Data.SqlClient;
 using HotelBookingManagement.Business.Interfaces;
+using HotelBookingManagement.Models;
 using HotelBookingManagement.Data.Interfaces;
 using HotelBookingManagement.Data.Repositories;
-using HotelBookingManagement.Models;
 
 namespace HotelBookingManagement.Business.Services;
 
-/// <summary>
-/// Cài đặt xử lý logic nghiệp vụ cho module Quản lý Khách hàng (TV02 - Customer)
-/// Thực thi validation chặt chẽ (Task CUS03) trước khi gọi tầng Data.
-/// </summary>
 public class CustomerService : ICustomerService
 {
 	private readonly ICustomerRepository _customerRepository;

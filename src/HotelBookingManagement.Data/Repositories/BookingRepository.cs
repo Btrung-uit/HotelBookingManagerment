@@ -32,10 +32,12 @@ public class BookingRepository : IBookingRepository
 		using var command = new SqlCommand(query, connection);
 
 		connection.Open();
-		using var reader = command.ExecuteReader();
-		while (reader.Read())
+		using (var reader = command.ExecuteReader())
 		{
-			list.Add(MapReaderToBooking(reader));
+			while (reader.Read())
+			{
+				list.Add(MapReaderToBooking(reader));
+			}
 		}
 
 		// Nạp chi tiết phòng cho danh sách bookings
@@ -232,13 +234,13 @@ public class BookingRepository : IBookingRepository
 
 			using var cmdBooking = new SqlCommand(insertBookingSql, connection, transaction);
 			cmdBooking.Parameters.Add("@CustomerId", SqlDbType.Int).Value = booking.CustomerId;
-			cmdBooking.Parameters.Add("@BookingDate", SqlDbType.DateTime2).Value = booking.BookingDate;
+			cmdBooking.Parameters.Add("@BookingDate", SqlDbType.DateTime2).Value = booking.BookingDate == default ? DateTime.Now : booking.BookingDate;
 			cmdBooking.Parameters.Add("@CheckInDate", SqlDbType.DateTime2).Value = booking.CheckInDate;
 			cmdBooking.Parameters.Add("@CheckOutDate", SqlDbType.DateTime2).Value = booking.CheckOutDate;
 			cmdBooking.Parameters.Add("@Status", SqlDbType.VarChar, 20).Value = string.IsNullOrWhiteSpace(booking.Status) ? "PENDING" : booking.Status;
 			cmdBooking.Parameters.Add("@TotalAmount", SqlDbType.Decimal).Value = booking.TotalAmount;
-			cmdBooking.Parameters.Add("@CreatedBy", SqlDbType.Int).Value = booking.CreatedBy;
-			cmdBooking.Parameters.Add("@CreatedAt", SqlDbType.DateTime2).Value = booking.CreatedAt;
+			cmdBooking.Parameters.Add("@CreatedBy", SqlDbType.Int).Value = booking.CreatedBy > 0 ? booking.CreatedBy : 1;
+			cmdBooking.Parameters.Add("@CreatedAt", SqlDbType.DateTime2).Value = booking.CreatedAt == default ? DateTime.Now : booking.CreatedAt;
 
 			int newBookingId = Convert.ToInt32(cmdBooking.ExecuteScalar());
 			booking.BookingId = newBookingId;
@@ -265,6 +267,110 @@ public class BookingRepository : IBookingRepository
 		{
 			transaction.Rollback();
 			throw;
+		}
+	}
+
+	/// <summary>
+	/// Hàm hỗ trợ tạo Booking từ danh sách mã phòng (Tương thích với BookingService trên nhánh feature/booking)
+	/// Đã chuẩn hóa theo đúng schema.sql
+	/// </summary>
+	public Booking? CreateBooking(Booking newBooking, List<int> selectedRoomIds)
+	{
+		if (newBooking == null || selectedRoomIds == null || selectedRoomIds.Count == 0)
+			return null;
+
+		using var conn = DatabaseConnection.GetConnection();
+		conn.Open();
+		using var transaction = conn.BeginTransaction();
+
+		try
+		{
+			int nights = Math.Max(1, (newBooking.CheckOutDate.Date - newBooking.CheckInDate.Date).Days);
+			int createdBy = newBooking.CreatedBy > 0 ? newBooking.CreatedBy : 1;
+
+			// 1. Lấy đơn giá từng phòng từ bảng Rooms & RoomTypes (nếu chưa tính TotalAmount)
+			var details = new List<BookingDetail>();
+			decimal calculatedTotal = 0;
+
+			const string priceQuery = @"
+				SELECT rt.PricePerNight 
+				FROM dbo.Rooms r
+				INNER JOIN dbo.RoomTypes rt ON r.RoomTypeId = rt.RoomTypeId
+				WHERE r.RoomId = @RoomId;";
+
+			foreach (int roomId in selectedRoomIds.Distinct())
+			{
+				decimal pricePerNight = 0;
+				using (var cmdPrice = new SqlCommand(priceQuery, conn, transaction))
+				{
+					cmdPrice.Parameters.Add("@RoomId", SqlDbType.Int).Value = roomId;
+					var result = cmdPrice.ExecuteScalar();
+					if (result != null && result != DBNull.Value)
+					{
+						pricePerNight = Convert.ToDecimal(result);
+					}
+				}
+
+				if (pricePerNight <= 0 && newBooking.TotalAmount > 0)
+				{
+					pricePerNight = (newBooking.TotalAmount / selectedRoomIds.Count) / nights;
+				}
+
+				decimal subtotal = pricePerNight * nights;
+				calculatedTotal += subtotal;
+
+				details.Add(new BookingDetail
+				{
+					RoomId = roomId,
+					PricePerNight = pricePerNight,
+					NumberOfNights = nights,
+					Subtotal = subtotal
+				});
+			}
+
+			decimal finalTotal = newBooking.TotalAmount > 0 ? newBooking.TotalAmount : calculatedTotal;
+
+			// 2. Thêm vào bảng Bookings đúng schema.sql
+			const string queryBooking = @"
+				INSERT INTO dbo.Bookings (CustomerId, BookingDate, CheckInDate, CheckOutDate, Status, TotalAmount, CreatedBy, CreatedAt)
+				OUTPUT INSERTED.BookingId
+				VALUES (@CustomerId, GETDATE(), @CheckIn, @CheckOut, 'PENDING', @TotalAmount, @CreatedBy, GETDATE());";
+
+			using (var cmd = new SqlCommand(queryBooking, conn, transaction))
+			{
+				cmd.Parameters.Add("@CustomerId", SqlDbType.Int).Value = newBooking.CustomerId;
+				cmd.Parameters.Add("@CheckIn", SqlDbType.DateTime2).Value = newBooking.CheckInDate;
+				cmd.Parameters.Add("@CheckOut", SqlDbType.DateTime2).Value = newBooking.CheckOutDate;
+				cmd.Parameters.Add("@TotalAmount", SqlDbType.Decimal).Value = finalTotal;
+				cmd.Parameters.Add("@CreatedBy", SqlDbType.Int).Value = createdBy;
+
+				newBooking.BookingId = Convert.ToInt32(cmd.ExecuteScalar());
+				newBooking.TotalAmount = finalTotal;
+			}
+
+			// 3. Thêm vào bảng BookingDetails đúng schema.sql
+			const string queryDetail = @"
+				INSERT INTO dbo.BookingDetails (BookingId, RoomId, PricePerNight, NumberOfNights, Subtotal)
+				VALUES (@BookingId, @RoomId, @PricePerNight, @NumberOfNights, @Subtotal);";
+
+			foreach (var detail in details)
+			{
+				using var cmdDetail = new SqlCommand(queryDetail, conn, transaction);
+				cmdDetail.Parameters.Add("@BookingId", SqlDbType.Int).Value = newBooking.BookingId;
+				cmdDetail.Parameters.Add("@RoomId", SqlDbType.Int).Value = detail.RoomId;
+				cmdDetail.Parameters.Add("@PricePerNight", SqlDbType.Decimal).Value = detail.PricePerNight;
+				cmdDetail.Parameters.Add("@NumberOfNights", SqlDbType.Int).Value = detail.NumberOfNights;
+				cmdDetail.Parameters.Add("@Subtotal", SqlDbType.Decimal).Value = detail.Subtotal;
+				cmdDetail.ExecuteNonQuery();
+			}
+
+			transaction.Commit();
+			return newBooking;
+		}
+		catch
+		{
+			transaction.Rollback();
+			return null;
 		}
 	}
 
@@ -304,7 +410,7 @@ public class BookingRepository : IBookingRepository
 		using var command = new SqlCommand(query, connection);
 
 		command.Parameters.Add("@BookingId", SqlDbType.Int).Value = bookingId;
-		command.Parameters.Add("@Status", SqlDbType.VarChar, 20).Value = newStatus;
+		command.Parameters.Add("@Status", SqlDbType.VarChar, 20).Value = newStatus.Trim().ToUpperInvariant();
 
 		connection.Open();
 		return command.ExecuteNonQuery() > 0;
@@ -390,72 +496,72 @@ public class BookingRepository : IBookingRepository
 		}
 	}
 
-	private static Booking MapReaderToBooking(SqlDataReader reader)
-	{
-		var booking = new Booking
-		{
-			BookingId = reader.GetInt32(reader.GetOrdinal("BookingId")),
-			CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
-			BookingDate = reader.GetDateTime(reader.GetOrdinal("BookingDate")),
-			CheckInDate = reader.GetDateTime(reader.GetOrdinal("CheckInDate")),
-			CheckOutDate = reader.GetDateTime(reader.GetOrdinal("CheckOutDate")),
-			Status = reader.GetString(reader.GetOrdinal("Status")),
-			TotalAmount = reader.GetDecimal(reader.GetOrdinal("TotalAmount")),
-			CreatedBy = reader.GetInt32(reader.GetOrdinal("CreatedBy")),
-			CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt")),
-			Customer = new Customer
-			{
-				CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
-				FullName = reader.GetString(reader.GetOrdinal("CustomerName")),
-				Phone = reader.GetString(reader.GetOrdinal("CustomerPhone")),
-				IdentityNumber = reader.GetString(reader.GetOrdinal("CustomerIdentity"))
-			}
-		};
+    private static Booking MapReaderToBooking(SqlDataReader reader)
+    {
+        var booking = new Booking
+        {
+            BookingId = reader.GetInt32(reader.GetOrdinal("BookingId")),
+            CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
+            BookingDate = reader.GetDateTime(reader.GetOrdinal("BookingDate")),
+            CheckInDate = reader.GetDateTime(reader.GetOrdinal("CheckInDate")),
+            CheckOutDate = reader.GetDateTime(reader.GetOrdinal("CheckOutDate")),
+            Status = reader.GetString(reader.GetOrdinal("Status")),
+            TotalAmount = reader.GetDecimal(reader.GetOrdinal("TotalAmount")),
+            CreatedBy = reader.GetInt32(reader.GetOrdinal("CreatedBy")),
+            CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt")),
+            Customer = new Customer
+            {
+                CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
+                FullName = reader.GetString(reader.GetOrdinal("CustomerName")),
+                Phone = reader.GetString(reader.GetOrdinal("CustomerPhone")),
+                IdentityNumber = reader.GetString(reader.GetOrdinal("CustomerIdentity"))
+            }
+        };
 
-		if (!reader.IsDBNull(reader.GetOrdinal("StaffName")))
-		{
-			booking.CreatedByUser = new User
-			{
-				UserId = booking.CreatedBy,
-				FullName = reader.GetString(reader.GetOrdinal("StaffName")),
-				Username = reader.IsDBNull(reader.GetOrdinal("StaffUsername")) ? string.Empty : reader.GetString(reader.GetOrdinal("StaffUsername"))
-			};
-		}
+        if (!reader.IsDBNull(reader.GetOrdinal("StaffName")))
+        {
+            booking.CreatedByUser = new User
+            {
+                UserId = booking.CreatedBy,
+                FullName = reader.GetString(reader.GetOrdinal("StaffName")),
+                Username = reader.IsDBNull(reader.GetOrdinal("StaffUsername")) ? string.Empty : reader.GetString(reader.GetOrdinal("StaffUsername"))
+            };
+        }
 
-		return booking;
-	}
+        return booking;
+    }
 
-	private static BookingDetail MapReaderToBookingDetail(SqlDataReader reader, Booking? parentBooking = null)
-	{
-		var roomType = new RoomType
-		{
-			RoomTypeId = reader.GetInt32(reader.GetOrdinal("RoomTypeId")),
-			Name = reader.GetString(reader.GetOrdinal("RoomTypeName")),
-			Capacity = reader.GetInt32(reader.GetOrdinal("Capacity")),
-			PricePerNight = reader.GetDecimal(reader.GetOrdinal("StandardPricePerNight"))
-		};
+    private static BookingDetail MapReaderToBookingDetail(SqlDataReader reader, Booking? parentBooking = null)
+    {
+        var roomType = new RoomType
+        {
+            RoomTypeId = reader.GetInt32(reader.GetOrdinal("RoomTypeId")),
+            Name = reader.GetString(reader.GetOrdinal("RoomTypeName")),
+            Capacity = reader.GetInt32(reader.GetOrdinal("Capacity")),
+            PricePerNight = reader.GetDecimal(reader.GetOrdinal("StandardPricePerNight"))
+        };
 
-		var room = new Room
-		{
-			RoomId = reader.GetInt32(reader.GetOrdinal("RoomId")),
-			RoomNumber = reader.GetString(reader.GetOrdinal("RoomNumber")),
-			RoomTypeId = roomType.RoomTypeId,
-			Floor = reader.GetInt32(reader.GetOrdinal("Floor")),
-			Status = reader.GetString(reader.GetOrdinal("RoomStatus")),
-			Description = reader.IsDBNull(reader.GetOrdinal("RoomDescription")) ? null : reader.GetString(reader.GetOrdinal("RoomDescription")),
-			RoomType = roomType
-		};
+        var room = new Room
+        {
+            RoomId = reader.GetInt32(reader.GetOrdinal("RoomId")),
+            RoomNumber = reader.GetString(reader.GetOrdinal("RoomNumber")),
+            RoomTypeId = roomType.RoomTypeId,
+            Floor = reader.GetInt32(reader.GetOrdinal("Floor")),
+            Status = reader.GetString(reader.GetOrdinal("RoomStatus")),
+            Description = reader.IsDBNull(reader.GetOrdinal("RoomDescription")) ? null : reader.GetString(reader.GetOrdinal("RoomDescription")),
+            RoomType = roomType
+        };
 
-		return new BookingDetail
-		{
-			BookingDetailId = reader.GetInt32(reader.GetOrdinal("BookingDetailId")),
-			BookingId = reader.GetInt32(reader.GetOrdinal("BookingId")),
-			RoomId = room.RoomId,
-			PricePerNight = reader.GetDecimal(reader.GetOrdinal("PricePerNight")),
-			NumberOfNights = reader.GetInt32(reader.GetOrdinal("NumberOfNights")),
-			Subtotal = reader.GetDecimal(reader.GetOrdinal("Subtotal")),
-			Booking = parentBooking,
-			Room = room
-		};
-	}
+        return new BookingDetail
+        {
+            BookingDetailId = reader.GetInt32(reader.GetOrdinal("BookingDetailId")),
+            BookingId = reader.GetInt32(reader.GetOrdinal("BookingId")),
+            RoomId = room.RoomId,
+            PricePerNight = reader.GetDecimal(reader.GetOrdinal("PricePerNight")),
+            NumberOfNights = reader.GetInt32(reader.GetOrdinal("NumberOfNights")),
+            Subtotal = reader.GetDecimal(reader.GetOrdinal("Subtotal")),
+            Booking = parentBooking,
+            Room = room
+        };
+    }
 }
