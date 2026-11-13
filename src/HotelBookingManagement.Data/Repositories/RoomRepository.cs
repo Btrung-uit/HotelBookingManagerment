@@ -115,7 +115,7 @@ public class RoomRepository : IRoomRepository
 			       rt.Name AS RoomTypeName, rt.Capacity, rt.PricePerNight, rt.Description AS RoomTypeDescription
 			FROM dbo.Rooms r
 			INNER JOIN dbo.RoomTypes rt ON r.RoomTypeId = rt.RoomTypeId
-			WHERE r.Status <> 'MAINTENANCE'
+			WHERE r.Status NOT IN ('MAINTENANCE', 'OCCUPIED')
 			  AND (@RoomTypeId IS NULL OR r.RoomTypeId = @RoomTypeId)
 			  AND r.RoomId NOT IN (
 			      SELECT bd.RoomId
@@ -172,7 +172,6 @@ public class RoomRepository : IRoomRepository
 			SET RoomNumber = @RoomNumber,
 			    RoomTypeId = @RoomTypeId,
 			    Floor = @Floor,
-			    Status = @Status,
 			    Description = @Description
 			WHERE RoomId = @RoomId;";
 
@@ -183,7 +182,6 @@ public class RoomRepository : IRoomRepository
 		command.Parameters.Add("@RoomNumber", SqlDbType.VarChar, 10).Value = room.RoomNumber.Trim();
 		command.Parameters.Add("@RoomTypeId", SqlDbType.Int).Value = room.RoomTypeId;
 		command.Parameters.Add("@Floor", SqlDbType.Int).Value = room.Floor;
-		command.Parameters.Add("@Status", SqlDbType.VarChar, 20).Value = room.Status.Trim();
 		command.Parameters.Add("@Description", SqlDbType.NVarChar, 255).Value = (object?)room.Description?.Trim() ?? DBNull.Value;
 
 		connection.Open();

@@ -153,6 +153,15 @@ public class RoomService : IRoomService
 			throw new ArgumentException("Mã phòng không hợp lệ để cập nhật.");
 		}
 
+		var existing = _roomRepository.GetById(room.RoomId);
+		if (existing == null)
+		{
+			throw new InvalidOperationException($"Không tìm thấy phòng có mã #{room.RoomId} để cập nhật.");
+		}
+
+		// Bảo toàn trạng thái hiện tại của phòng; không cập nhật Status trong thao tác sửa thông tin phòng (chỉ đổi qua UpdateRoomStatus)
+		room.Status = existing.Status;
+
 		ValidateRoom(room, isUpdate: true);
 		return _roomRepository.Update(room);
 	}
@@ -288,7 +297,7 @@ public class RoomService : IRoomService
 		if (currentStatus == newStatus) return true;
 
 		// Kiểm tra quy tắc Algorithm 3 - Room Status Transition:
-		// AVAILABLE -> RESERVED, OCCUPIED, MAINTENANCE
+		// AVAILABLE -> RESERVED, MAINTENANCE (không cho phép nhảy thẳng sang OCCUPIED mà không qua Booking/Check-in)
 		// RESERVED -> OCCUPIED, AVAILABLE, MAINTENANCE
 		// OCCUPIED -> CLEANING, MAINTENANCE (đặc biệt không được nhảy thẳng về AVAILABLE mà chưa dọn dẹp)
 		// CLEANING -> AVAILABLE, MAINTENANCE
@@ -297,7 +306,12 @@ public class RoomService : IRoomService
 		switch (currentStatus)
 		{
 			case "AVAILABLE":
-				if (newStatus is "RESERVED" or "OCCUPIED" or "MAINTENANCE") return true;
+				if (newStatus is "RESERVED" or "MAINTENANCE") return true;
+				if (newStatus == "OCCUPIED")
+				{
+					errorMessage = "Quy tắc nghiệp vụ: Phòng Sẵn sàng (AVAILABLE) không thể chuyển trực tiếp sang Đang có khách (OCCUPIED). Việc nhận phòng phải thông qua quy trình đặt phòng và nhận phòng (Check-in)!";
+					return false;
+				}
 				errorMessage = $"Không thể chuyển phòng từ Sẵn sàng ({currentStatus}) sang {newStatus}.";
 				return false;
 

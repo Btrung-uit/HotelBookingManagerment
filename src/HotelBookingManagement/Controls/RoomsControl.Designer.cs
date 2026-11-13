@@ -295,12 +295,13 @@ namespace HotelBookingManagement.Controls
 			lblStatus.Name = "lblStatus";
 			lblStatus.Size = new Size(147, 20);
 			lblStatus.TabIndex = 8;
-			lblStatus.Text = "Trạng thái phòng: (*)";
+			lblStatus.Text = "Trạng thái phòng: (Chuyển bằng nút nhanh)";
 
 			//
 			// cboStatus
 			//
 			cboStatus.DropDownStyle = ComboBoxStyle.DropDownList;
+			cboStatus.Enabled = false;
 			cboStatus.Font = new Font("Segoe UI", 9.5F);
 			cboStatus.FormattingEnabled = true;
 			cboStatus.Location = new Point(15, 265);

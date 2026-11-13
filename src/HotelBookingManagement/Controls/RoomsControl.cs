@@ -351,14 +351,12 @@ namespace HotelBookingManagement.Controls
 				return;
 			}
 
-			string selectedStatus = (cboStatus.SelectedItem as ComboBoxItem)?.Value as string ?? "AVAILABLE";
-
 			var room = new Room
 			{
 				RoomNumber = txtRoomNumber.Text.Trim(),
 				RoomTypeId = selectedTypeId,
 				Floor = (int)numFloor.Value,
-				Status = selectedStatus,
+				Status = "AVAILABLE",
 				Description = string.IsNullOrWhiteSpace(txtDescription.Text) ? null : txtDescription.Text.Trim()
 			};
 
@@ -402,15 +400,12 @@ namespace HotelBookingManagement.Controls
 				return;
 			}
 
-			string selectedStatus = (cboStatus.SelectedItem as ComboBoxItem)?.Value as string ?? "AVAILABLE";
-
 			var room = new Room
 			{
 				RoomId = id,
 				RoomNumber = txtRoomNumber.Text.Trim(),
 				RoomTypeId = selectedTypeId,
 				Floor = (int)numFloor.Value,
-				Status = selectedStatus,
 				Description = string.IsNullOrWhiteSpace(txtDescription.Text) ? null : txtDescription.Text.Trim()
 			};
 
@@ -420,7 +415,7 @@ namespace HotelBookingManagement.Controls
 				if (success)
 				{
 					MessageBox.Show(
-						$"Cập nhật thông tin phòng '{room.RoomNumber}' thành công!",
+						$"Cập nhật thông tin phòng '{room.RoomNumber}' thành công!\n(Lưu ý: Trạng thái phòng được bảo toàn; để chuyển trạng thái vui lòng dùng cụm 'Chuyển trạng thái nhanh')",
 						"Thành công",
 						MessageBoxButtons.OK,
 						MessageBoxIcon.Information);
