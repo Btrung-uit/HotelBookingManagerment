@@ -158,20 +158,7 @@ namespace HotelBookingManagement.Forms
                 MessageBox.Show("Rất tiếc, không còn phòng trống nào trong khoảng thời gian này!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
-        private void btnKiemTraPhong_Click(object sender, EventArgs e)
-        {
-            DateTime checkIn = dtpCheckIn.Value.Date;
-            DateTime checkOut = dtpCheckOut.Value.Date;
-
-            DataTable dtRooms = _roomService.GetAvailableRooms(checkIn, checkOut);
-            dgvDanhSachPhong.DataSource = dtRooms;
-            dgvDanhSachPhong.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-
-            if (dtRooms.Rows.Count == 0)
-            {
-                MessageBox.Show("Rất tiếc, không còn phòng trống nào trong khoảng thời gian này!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-        }
+        
 
         private void btnTaoBooking_Click(object sender, EventArgs e)
         {
