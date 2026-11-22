@@ -116,9 +116,32 @@ namespace HotelBookingManagement.Forms
                 DateTime checkIn = dtpCheckIn.Value.Date;
                 DateTime checkOut = dtpCheckOut.Value.Date;
 
-                DataTable dtRooms = _roomService.GetAvailableRooms(checkIn, checkOut);
-                dgvDanhSachPhong.DataSource = dtRooms;
+                var availableRooms = _roomService.GetAvailableRoomsByDateRange(checkIn, checkOut, null).ToList();
+
+                var displayList = availableRooms.Select(r => new
+                {
+                    RoomId = r.RoomId,
+                    RoomNumber = r.RoomNumber,
+                    TypeName = r.RoomType?.Name ?? "N/A",
+                    PricePerNight = r.RoomType?.PricePerNight ?? 0,
+                    Floor = r.Floor,
+                    Status = r.Status
+                }).ToList();
+
+                dgvDanhSachPhong.DataSource = displayList;
                 dgvDanhSachPhong.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+
+                // Đổi tên và định dạng các cột
+                if (dgvDanhSachPhong.Columns["RoomId"] != null) dgvDanhSachPhong.Columns["RoomId"]!.Visible = false;
+                if (dgvDanhSachPhong.Columns["RoomNumber"] != null) dgvDanhSachPhong.Columns["RoomNumber"]!.HeaderText = "Số Phòng";
+                if (dgvDanhSachPhong.Columns["TypeName"] != null) dgvDanhSachPhong.Columns["TypeName"]!.HeaderText = "Loại Phòng";
+                if (dgvDanhSachPhong.Columns["PricePerNight"] != null)
+                {
+                    dgvDanhSachPhong.Columns["PricePerNight"]!.HeaderText = "Giá/Đêm";
+                    dgvDanhSachPhong.Columns["PricePerNight"]!.DefaultCellStyle.Format = "N0";
+                }
+                if (dgvDanhSachPhong.Columns["Floor"] != null) dgvDanhSachPhong.Columns["Floor"]!.HeaderText = "Tầng";
+                if (dgvDanhSachPhong.Columns["Status"] != null) dgvDanhSachPhong.Columns["Status"]!.HeaderText = "Trạng Thái";
             }
             catch (Exception ex)
             {
@@ -126,6 +149,15 @@ namespace HotelBookingManagement.Forms
             }
         }
 
+        private void btnKiemTraPhong_Click(object sender, EventArgs e)
+        {
+            LoadAvailableRooms();
+
+            if (dgvDanhSachPhong.Rows.Count == 0)
+            {
+                MessageBox.Show("Rất tiếc, không còn phòng trống nào trong khoảng thời gian này!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
         private void btnKiemTraPhong_Click(object sender, EventArgs e)
         {
             DateTime checkIn = dtpCheckIn.Value.Date;
