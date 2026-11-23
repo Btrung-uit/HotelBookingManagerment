@@ -85,6 +85,6 @@ public interface IBookingRepository
 	/// Lấy danh sách các dòng chi tiết phòng trong một đơn đặt phòng
 	/// </summary>
 	IEnumerable<BookingDetail> GetDetailsByBookingId(int bookingId);
-        Booking CreateBooking(Booking newBooking, List<int> selectedRoomIds);
-    }
+    Booking? CreateBooking(Booking newBooking, List<int> selectedRoomIds);
+}
 

@@ -29,24 +29,28 @@ namespace HotelBookingManagement.Business.Services
             if (newBooking == null || selectedRoomIds == null || selectedRoomIds.Count == 0)
                 return null;
 
+            if (newBooking.CreatedBy <= 0)
+                throw new InvalidOperationException("Không xác định được nhân viên tạo đơn đặt phòng!");
+
             if (newBooking.CheckOutDate.Date <= newBooking.CheckInDate.Date)
                 throw new InvalidOperationException("Ngày Check-out phải lớn hơn ngày Check-in!");
 
-            // Kiểm tra chống trùng lịch (BOOK05) cho từng phòng trước khi lưu
+            // Kiểm tra trạng thái phòng và chống trùng lịch (BOOK05) cho từng phòng
             foreach (int roomId in selectedRoomIds.Distinct())
             {
+                var room = _roomRepo.GetById(roomId);
+                if (room == null)
+                    throw new InvalidOperationException($"Không tìm thấy phòng mã #{roomId}!");
+
+                var status = room.Status?.Trim().ToUpperInvariant();
+                if (status == "MAINTENANCE" || status == "OCCUPIED")
+                    throw new InvalidOperationException($"Phòng {room.RoomNumber} hiện đang ở trạng thái {status}, không thể đặt!");
+
                 if (_bookingRepo.HasOverlappingBooking(roomId, newBooking.CheckInDate, newBooking.CheckOutDate))
-                {
-                    throw new InvalidOperationException($"Phòng mã #{roomId} vừa có người đặt trong khoảng thời gian này. Vui lòng làm mới danh sách phòng!");
-                }
+                    throw new InvalidOperationException($"Phòng {room.RoomNumber} vừa có người đặt trong khoảng thời gian này. Vui lòng làm mới danh sách phòng!");
             }
 
-            if (_bookingRepo is BookingRepository concreteRepo)
-            {
-                return concreteRepo.CreateBooking(newBooking, selectedRoomIds);
-            }
-
-            return null;
+            return _bookingRepo.CreateBooking(newBooking, selectedRoomIds);
         }
 
         // --- TASK BOOK04: Lấy danh sách phòng trống ---

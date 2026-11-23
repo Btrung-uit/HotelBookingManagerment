@@ -1,9 +1,10 @@
-﻿using System;
+﻿using HotelBookingManagement.Business;
+using HotelBookingManagement.Business.Services;
+using HotelBookingManagement.Models;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Windows.Forms;
-using HotelBookingManagement.Models;
-using HotelBookingManagement.Business.Services;
 
 namespace HotelBookingManagement.Forms
 {
@@ -32,8 +33,31 @@ namespace HotelBookingManagement.Forms
             dtpCheckIn.ValueChanged += ValidateBookingDates;
             dtpCheckOut.ValueChanged += ValidateBookingDates;
 
+            // Xóa khách đã chọn nếu người dùng sửa lại SĐT hoặc CCCD
+            txtSDT.TextChanged += CustomerInput_TextChanged;
+            txtCCCD.TextChanged += CustomerInput_TextChanged;
+
+            // Bấm vào bất kỳ ô nào trên lưới cũng chọn cả dòng phòng
+            dgvDanhSachPhong.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvDanhSachPhong.MultiSelect = true;
+
             // Tải luôn danh sách phòng trống cho ngày mặc định
             LoadAvailableRooms();
+        }
+
+        private void CustomerInput_TextChanged(object? sender, EventArgs e)
+        {
+            if (_currentCustomerId > 0 && _currentCustomer != null)
+            {
+                bool phoneChanged = !string.Equals(txtSDT.Text.Trim(), _currentCustomer.Phone?.Trim(), StringComparison.OrdinalIgnoreCase);
+                bool cccdChanged = !string.Equals(txtCCCD.Text.Trim(), _currentCustomer.IdentityNumber?.Trim(), StringComparison.OrdinalIgnoreCase);
+
+                if (phoneChanged || cccdChanged)
+                {
+                    _currentCustomerId = -1;
+                    _currentCustomer = null;
+                }
+            }
         }
 
         // ==========================================
@@ -158,12 +182,17 @@ namespace HotelBookingManagement.Forms
                 MessageBox.Show("Rất tiếc, không còn phòng trống nào trong khoảng thời gian này!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
-        
-
         private void btnTaoBooking_Click(object sender, EventArgs e)
         {
             try
             {
+                // 0. Kiểm tra phiên đăng nhập của nhân viên
+                if (UserSession.CurrentUser == null || UserSession.CurrentUser.UserId <= 0)
+                {
+                    MessageBox.Show("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại!", "Lỗi phiên làm việc", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
                 // 1. Kiểm tra chọn phòng trên DataGridView
                 if (dgvDanhSachPhong.SelectedRows.Count == 0)
                 {
@@ -171,7 +200,7 @@ namespace HotelBookingManagement.Forms
                     return;
                 }
 
-                // 2. Xác nhận hoặc tự động tạo khách hàng mới nếu người dùng đã điền đủ thông tin
+                // 2. Xác nhận lại khách hàng nếu chưa chọn hoặc vừa sửa SĐT/CCCD
                 if (_currentCustomerId <= 0)
                 {
                     string fullName = txtHoTen.Text.Trim();
@@ -183,11 +212,32 @@ namespace HotelBookingManagement.Forms
                         var existing = _customerService.GetCustomerByIdentityNumber(cccd) ?? _customerService.GetCustomerByPhone(phone);
                         if (existing != null)
                         {
+                            var confirmExisting = MessageBox.Show(
+                                $"Thông tin trùng với khách hàng đã có:\n- Họ tên: {existing.FullName}\n- SĐT: {existing.Phone}\n- CCCD: {existing.IdentityNumber}\n\nXác nhận đặt phòng cho khách hàng này?",
+                                "Xác nhận thông tin khách hàng",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Question);
+
+                            if (confirmExisting != DialogResult.Yes)
+                                return;
+
                             _currentCustomer = existing;
                             _currentCustomerId = existing.CustomerId;
+                            txtHoTen.Text = existing.FullName;
+                            txtCCCD.Text = existing.IdentityNumber;
+                            txtSDT.Text = existing.Phone;
                         }
                         else
                         {
+                            var confirmNew = MessageBox.Show(
+                                $"Xác nhận tạo khách hàng mới và đặt phòng:\n- Họ tên: {fullName}\n- SĐT: {phone}\n- CCCD: {cccd}",
+                                "Xác nhận khách hàng mới",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Question);
+
+                            if (confirmNew != DialogResult.Yes)
+                                return;
+
                             var newCust = new Customer
                             {
                                 FullName = fullName,
@@ -208,12 +258,12 @@ namespace HotelBookingManagement.Forms
                     }
                     else
                     {
-                        MessageBox.Show("Vui lòng bấm tìm khách hàng cũ, hoặc nhập đầy đủ Họ tên, SĐT và CCCD để tạo khách mới trước khi đặt phòng!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        MessageBox.Show("Vui lòng tìm khách hàng cũ, hoặc nhập đầy đủ Họ tên, SĐT và CCCD để xác nhận khách trước khi đặt phòng!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         return;
                     }
                 }
 
-                // 3. Gom danh sách các phòng được chọn và tính tổng giá phòng 1 đêm
+                // 3. Gom danh sách các phòng được chọn và tính tạm tổng giá phòng 1 đêm
                 List<int> selectedRoomIds = new List<int>();
                 decimal pricePerNight = 0;
 
@@ -227,15 +277,13 @@ namespace HotelBookingManagement.Forms
                     pricePerNight += price;
                 }
 
-                // 4. Tính số đêm và Tổng tiền
+                // 4. Tính số đêm và Tổng tiền dự kiến
                 DateTime checkIn = dtpCheckIn.Value.Date;
                 DateTime checkOut = dtpCheckOut.Value.Date;
-                int totalNights = (int)(checkOut - checkIn).TotalDays;
-                if (totalNights <= 0) totalNights = 1;
-
+                int totalNights = Math.Max(1, (int)(checkOut - checkIn).TotalDays);
                 decimal totalAmount = pricePerNight * totalNights;
 
-                // 5. Đóng gói dữ liệu vào Object Booking
+                // 5. Đóng gói dữ liệu vào Object Booking với CreatedBy lấy từ UserSession
                 Booking newBooking = new Booking
                 {
                     CustomerId = _currentCustomerId,
@@ -244,11 +292,11 @@ namespace HotelBookingManagement.Forms
                     CheckOutDate = checkOut,
                     Status = "PENDING",
                     TotalAmount = totalAmount,
-                    CreatedBy = 1,
+                    CreatedBy = UserSession.CurrentUser.UserId,
                     CreatedAt = DateTime.Now
                 };
 
-                // 6. Lưu xuống DB qua tầng Business
+                // 6. Lưu xuống DB qua tầng Business (DB sẽ tính lại TotalAmount từ tổng Subtotal)
                 Booking? result = _bookingService.CreateBooking(newBooking, selectedRoomIds);
 
                 if (result != null && result.BookingId > 0)
@@ -273,6 +321,8 @@ namespace HotelBookingManagement.Forms
                 MessageBox.Show("Lỗi khi tạo đặt phòng: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
+
 
         private void btnHuy_Click(object sender, EventArgs e)
         {
