@@ -75,29 +75,32 @@ namespace HotelBookingManagement.Forms
             }
 
             // Nếu nhập CCCD thì tìm theo CCCD, nếu không có hoặc trống thì tìm tiếp theo SĐT
-            _currentCustomer = null;
+            Customer? foundCustomer = null;
             if (!string.IsNullOrEmpty(cccd))
             {
-                _currentCustomer = _customerService.GetCustomerByIdentityNumber(cccd);
+                foundCustomer = _customerService.GetCustomerByIdentityNumber(cccd);
             }
-            if (_currentCustomer == null && !string.IsNullOrEmpty(phone))
+            if (foundCustomer == null && !string.IsNullOrEmpty(phone))
             {
-                _currentCustomer = _customerService.GetCustomerByPhone(phone);
+                foundCustomer = _customerService.GetCustomerByPhone(phone);
             }
 
-            if (_currentCustomer != null)
+            if (foundCustomer != null)
             {
-                // GÁN ID KHÁCH HÀNG ĐỂ NÚT TẠO BOOKING HOẠT ĐỘNG
-                _currentCustomerId = _currentCustomer.CustomerId;
+                // 1. Điền các ô TextBox từ biến cục bộ trước (tránh TextChanged xóa _currentCustomer giữa chừng)
+                txtHoTen.Text = foundCustomer.FullName;
+                txtCCCD.Text = foundCustomer.IdentityNumber;
+                txtSDT.Text = foundCustomer.Phone;
 
-                txtHoTen.Text = _currentCustomer.FullName;
-                txtCCCD.Text = _currentCustomer.IdentityNumber;
-                txtSDT.Text = _currentCustomer.Phone;
+                // 2. Sau khi TextBox ổn định mới gán biến trạng thái thành viên
+                _currentCustomer = foundCustomer;
+                _currentCustomerId = foundCustomer.CustomerId;
 
-                MessageBox.Show($"Đã tìm thấy thông tin khách: {_currentCustomer.FullName} (Mã KH: #{_currentCustomerId})", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show($"Đã tìm thấy thông tin khách: {foundCustomer.FullName} (Mã KH: #{foundCustomer.CustomerId})", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else
             {
+                _currentCustomer = null;
                 _currentCustomerId = -1;
                 txtHoTen.Clear();
                 MessageBox.Show("Không tìm thấy khách hàng. Bạn có thể nhập Họ tên, SĐT và CCCD trên form để tự động tạo khách mới khi đặt phòng!", "Khách hàng mới", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -221,11 +224,14 @@ namespace HotelBookingManagement.Forms
                             if (confirmExisting != DialogResult.Yes)
                                 return;
 
-                            _currentCustomer = existing;
-                            _currentCustomerId = existing.CustomerId;
+                            // 1. Điền TextBox từ biến cục bộ existing trước
                             txtHoTen.Text = existing.FullName;
                             txtCCCD.Text = existing.IdentityNumber;
                             txtSDT.Text = existing.Phone;
+
+                            // 2. Gán _currentCustomer và _currentCustomerId sau cùng
+                            _currentCustomer = existing;
+                            _currentCustomerId = existing.CustomerId;
                         }
                         else
                         {
