@@ -32,10 +32,12 @@ public class BookingRepository : IBookingRepository
 		using var command = new SqlCommand(query, connection);
 
 		connection.Open();
-		using var reader = command.ExecuteReader();
-		while (reader.Read())
+		using (var reader = command.ExecuteReader())
 		{
-			list.Add(MapReaderToBooking(reader));
+			while (reader.Read())
+			{
+				list.Add(MapReaderToBooking(reader));
+			}
 		}
 
 		// Nạp chi tiết phòng cho danh sách bookings
@@ -158,7 +160,7 @@ public class BookingRepository : IBookingRepository
 			SELECT COUNT(1)
 			FROM dbo.Bookings b
 			INNER JOIN dbo.BookingDetails d ON b.BookingId = d.BookingId
-			WHERE b.Status != 'CANCELLED'
+			WHERE b.Status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN')
 			  AND b.CheckInDate < @NewCheckOut
 			  AND b.CheckOutDate > @NewCheckIn
 			  AND d.RoomId = @RoomId
@@ -184,7 +186,7 @@ public class BookingRepository : IBookingRepository
 			SELECT DISTINCT d.RoomId
 			FROM dbo.Bookings b
 			INNER JOIN dbo.BookingDetails d ON b.BookingId = d.BookingId
-			WHERE b.Status != 'CANCELLED'
+			WHERE b.Status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN')
 			  AND b.CheckInDate < @NewCheckOut
 			  AND b.CheckOutDate > @NewCheckIn
 			  AND (@ExcludeBookingId IS NULL OR b.BookingId != @ExcludeBookingId);";
@@ -211,64 +213,256 @@ public class BookingRepository : IBookingRepository
 		return AddWithDetails(booking, booking.BookingDetails);
 	}
 
-	public int AddWithDetails(Booking booking, IReadOnlyCollection<BookingDetail> details)
-	{
-		if (booking == null) throw new ArgumentNullException(nameof(booking));
-		if (details == null || details.Count == 0)
-		{
-			throw new ArgumentException("Đơn đặt phòng bắt buộc phải có ít nhất một phòng chi tiết!", nameof(details));
-		}
+    public int AddWithDetails(Booking booking, IReadOnlyCollection<BookingDetail> details)
+    {
+        if (booking == null) throw new ArgumentNullException(nameof(booking));
+        if (details == null || details.Count == 0)
+        {
+            throw new ArgumentException("Đơn đặt phòng bắt buộc phải có ít nhất một phòng chi tiết!", nameof(details));
+        }
+        if (booking.CreatedBy <= 0)
+        {
+            throw new ArgumentException("Không xác định được nhân viên tạo đơn đặt phòng!", nameof(booking));
+        }
 
-		using var connection = DatabaseConnection.GetConnection();
-		connection.Open();
-		using var transaction = connection.BeginTransaction();
+        using var connection = DatabaseConnection.GetConnection();
+        connection.Open();
+        using var transaction = connection.BeginTransaction(IsolationLevel.ReadCommitted);
 
-		try
-		{
-			const string insertBookingSql = @"
+        try
+        {
+            const string lockRoomSql = @"
+				SELECT r.RoomNumber, r.Status
+				FROM dbo.Rooms r WITH (UPDLOCK, ROWLOCK)
+				WHERE r.RoomId = @RoomId;";
+
+            const string overlapSql = @"
+				SELECT COUNT(1)
+				FROM dbo.Bookings b WITH (UPDLOCK, HOLDLOCK)
+				INNER JOIN dbo.BookingDetails d WITH (UPDLOCK, HOLDLOCK) ON b.BookingId = d.BookingId
+				WHERE b.Status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN')
+				  AND b.CheckInDate < @NewCheckOut
+				  AND b.CheckOutDate > @NewCheckIn
+				  AND d.RoomId = @RoomId;";
+
+            foreach (int roomId in details.Select(d => d.RoomId).Distinct().OrderBy(id => id))
+            {
+                string roomNumber;
+                string roomStatus;
+
+                using (var cmdRoom = new SqlCommand(lockRoomSql, connection, transaction))
+                {
+                    cmdRoom.Parameters.Add("@RoomId", SqlDbType.Int).Value = roomId;
+                    using var reader = cmdRoom.ExecuteReader();
+                    if (!reader.Read())
+                    {
+                        throw new InvalidOperationException($"Không tìm thấy phòng mã #{roomId}!");
+                    }
+                    roomNumber = reader.GetString(0);
+                    roomStatus = reader.GetString(1).Trim().ToUpperInvariant();
+                }
+
+                if (roomStatus == "MAINTENANCE" || roomStatus == "OCCUPIED")
+                {
+                    throw new InvalidOperationException($"Phòng {roomNumber} hiện đang ở trạng thái {roomStatus}, không thể đặt!");
+                }
+
+                using (var cmdOverlap = new SqlCommand(overlapSql, connection, transaction))
+                {
+                    cmdOverlap.Parameters.Add("@RoomId", SqlDbType.Int).Value = roomId;
+                    cmdOverlap.Parameters.Add("@NewCheckIn", SqlDbType.DateTime2).Value = booking.CheckInDate;
+                    cmdOverlap.Parameters.Add("@NewCheckOut", SqlDbType.DateTime2).Value = booking.CheckOutDate;
+
+                    if (Convert.ToInt32(cmdOverlap.ExecuteScalar()) > 0)
+                    {
+                        throw new InvalidOperationException($"Phòng {roomNumber} đã có đơn đặt trùng lịch trong khoảng thời gian này!");
+                    }
+                }
+            }
+
+            decimal totalAmount = details.Sum(d => d.Subtotal);
+            booking.TotalAmount = totalAmount;
+
+            const string insertBookingSql = @"
 				INSERT INTO dbo.Bookings (CustomerId, BookingDate, CheckInDate, CheckOutDate, Status, TotalAmount, CreatedBy, CreatedAt)
 				VALUES (@CustomerId, @BookingDate, @CheckInDate, @CheckOutDate, @Status, @TotalAmount, @CreatedBy, @CreatedAt);
 				SELECT CAST(SCOPE_IDENTITY() AS int);";
 
-			using var cmdBooking = new SqlCommand(insertBookingSql, connection, transaction);
-			cmdBooking.Parameters.Add("@CustomerId", SqlDbType.Int).Value = booking.CustomerId;
-			cmdBooking.Parameters.Add("@BookingDate", SqlDbType.DateTime2).Value = booking.BookingDate;
-			cmdBooking.Parameters.Add("@CheckInDate", SqlDbType.DateTime2).Value = booking.CheckInDate;
-			cmdBooking.Parameters.Add("@CheckOutDate", SqlDbType.DateTime2).Value = booking.CheckOutDate;
-			cmdBooking.Parameters.Add("@Status", SqlDbType.VarChar, 20).Value = string.IsNullOrWhiteSpace(booking.Status) ? "PENDING" : booking.Status;
-			cmdBooking.Parameters.Add("@TotalAmount", SqlDbType.Decimal).Value = booking.TotalAmount;
-			cmdBooking.Parameters.Add("@CreatedBy", SqlDbType.Int).Value = booking.CreatedBy;
-			cmdBooking.Parameters.Add("@CreatedAt", SqlDbType.DateTime2).Value = booking.CreatedAt;
+            using var cmdBooking = new SqlCommand(insertBookingSql, connection, transaction);
+            cmdBooking.Parameters.Add("@CustomerId", SqlDbType.Int).Value = booking.CustomerId;
+            cmdBooking.Parameters.Add("@BookingDate", SqlDbType.DateTime2).Value = booking.BookingDate == default ? DateTime.Now : booking.BookingDate;
+            cmdBooking.Parameters.Add("@CheckInDate", SqlDbType.DateTime2).Value = booking.CheckInDate;
+            cmdBooking.Parameters.Add("@CheckOutDate", SqlDbType.DateTime2).Value = booking.CheckOutDate;
+            cmdBooking.Parameters.Add("@Status", SqlDbType.VarChar, 20).Value = string.IsNullOrWhiteSpace(booking.Status) ? "PENDING" : booking.Status;
+            cmdBooking.Parameters.Add("@TotalAmount", SqlDbType.Decimal).Value = totalAmount;
+            cmdBooking.Parameters.Add("@CreatedBy", SqlDbType.Int).Value = booking.CreatedBy;
+            cmdBooking.Parameters.Add("@CreatedAt", SqlDbType.DateTime2).Value = booking.CreatedAt == default ? DateTime.Now : booking.CreatedAt;
 
-			int newBookingId = Convert.ToInt32(cmdBooking.ExecuteScalar());
-			booking.BookingId = newBookingId;
+            int newBookingId = Convert.ToInt32(cmdBooking.ExecuteScalar());
+            booking.BookingId = newBookingId;
 
-			const string insertDetailSql = @"
+            const string insertDetailSql = @"
 				INSERT INTO dbo.BookingDetails (BookingId, RoomId, PricePerNight, NumberOfNights, Subtotal)
 				VALUES (@BookingId, @RoomId, @PricePerNight, @NumberOfNights, @Subtotal);";
 
-			foreach (var detail in details)
-			{
-				using var cmdDetail = new SqlCommand(insertDetailSql, connection, transaction);
-				cmdDetail.Parameters.Add("@BookingId", SqlDbType.Int).Value = newBookingId;
-				cmdDetail.Parameters.Add("@RoomId", SqlDbType.Int).Value = detail.RoomId;
-				cmdDetail.Parameters.Add("@PricePerNight", SqlDbType.Decimal).Value = detail.PricePerNight;
-				cmdDetail.Parameters.Add("@NumberOfNights", SqlDbType.Int).Value = detail.NumberOfNights;
-				cmdDetail.Parameters.Add("@Subtotal", SqlDbType.Decimal).Value = detail.Subtotal;
-				cmdDetail.ExecuteNonQuery();
-			}
+            foreach (var detail in details)
+            {
+                using var cmdDetail = new SqlCommand(insertDetailSql, connection, transaction);
+                cmdDetail.Parameters.Add("@BookingId", SqlDbType.Int).Value = newBookingId;
+                cmdDetail.Parameters.Add("@RoomId", SqlDbType.Int).Value = detail.RoomId;
+                cmdDetail.Parameters.Add("@PricePerNight", SqlDbType.Decimal).Value = detail.PricePerNight;
+                cmdDetail.Parameters.Add("@NumberOfNights", SqlDbType.Int).Value = detail.NumberOfNights;
+                cmdDetail.Parameters.Add("@Subtotal", SqlDbType.Decimal).Value = detail.Subtotal;
+                cmdDetail.ExecuteNonQuery();
+            }
 
-			transaction.Commit();
-			return newBookingId;
-		}
-		catch
-		{
-			transaction.Rollback();
-			throw;
-		}
-	}
+            transaction.Commit();
+            return newBookingId;
+        }
+        catch
+        {
+            transaction.Rollback();
+            throw;
+        }
+    }
 
-	public bool Update(Booking booking)
+    /// <summary>
+    /// Tạo Booking kèm BookingDetails trong cùng SqlTransaction có khóa theo phòng (UPDLOCK, ROWLOCK).
+    /// </summary>
+    public Booking? CreateBooking(Booking newBooking, List<int> selectedRoomIds)
+    {
+        if (newBooking == null || selectedRoomIds == null || selectedRoomIds.Count == 0)
+            return null;
+
+        if (newBooking.CreatedBy <= 0)
+            throw new InvalidOperationException("Không xác định được nhân viên tạo đơn đặt phòng!");
+
+        var distinctRoomIds = selectedRoomIds.Distinct().OrderBy(id => id).ToList();
+
+        using var conn = DatabaseConnection.GetConnection();
+        conn.Open();
+        using var transaction = conn.BeginTransaction(IsolationLevel.ReadCommitted);
+
+        try
+        {
+            int nights = Math.Max(1, (newBooking.CheckOutDate.Date - newBooking.CheckInDate.Date).Days);
+            var details = new List<BookingDetail>();
+
+            const string lockRoomAndPriceQuery = @"
+				SELECT r.RoomNumber, r.Status, rt.PricePerNight
+				FROM dbo.Rooms r WITH (UPDLOCK, ROWLOCK)
+				INNER JOIN dbo.RoomTypes rt ON r.RoomTypeId = rt.RoomTypeId
+				WHERE r.RoomId = @RoomId;";
+
+            const string overlapCheckQuery = @"
+				SELECT COUNT(1)
+				FROM dbo.Bookings b WITH (UPDLOCK, HOLDLOCK)
+				INNER JOIN dbo.BookingDetails d WITH (UPDLOCK, HOLDLOCK) ON b.BookingId = d.BookingId
+				WHERE b.Status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN')
+				  AND b.CheckInDate < @NewCheckOut
+				  AND b.CheckOutDate > @NewCheckIn
+				  AND d.RoomId = @RoomId;";
+
+            foreach (int roomId in distinctRoomIds)
+            {
+                string roomNumber;
+                string roomStatus;
+                decimal pricePerNight;
+
+                // 1. Khóa dòng phòng theo RoomId và đọc trạng thái + đơn giá thực tế từ DB
+                using (var cmdRoom = new SqlCommand(lockRoomAndPriceQuery, conn, transaction))
+                {
+                    cmdRoom.Parameters.Add("@RoomId", SqlDbType.Int).Value = roomId;
+                    using var reader = cmdRoom.ExecuteReader();
+                    if (!reader.Read())
+                    {
+                        throw new InvalidOperationException($"Không tìm thấy phòng mã #{roomId} trong hệ thống!");
+                    }
+
+                    roomNumber = reader.GetString(0);
+                    roomStatus = reader.GetString(1).Trim().ToUpperInvariant();
+                    pricePerNight = reader.GetDecimal(2);
+                }
+
+                // 2. Chặn phòng vừa chuyển sang MAINTENANCE hoặc OCCUPIED
+                if (roomStatus == "MAINTENANCE" || roomStatus == "OCCUPIED")
+                {
+                    throw new InvalidOperationException($"Phòng {roomNumber} hiện đang ở trạng thái {roomStatus}, không thể đặt!");
+                }
+
+                // 3. Chặn trùng lịch đặt trong cùng transaction sau khi đã giữ khóa phòng
+                using (var cmdOverlap = new SqlCommand(overlapCheckQuery, conn, transaction))
+                {
+                    cmdOverlap.Parameters.Add("@RoomId", SqlDbType.Int).Value = roomId;
+                    cmdOverlap.Parameters.Add("@NewCheckIn", SqlDbType.DateTime2).Value = newBooking.CheckInDate;
+                    cmdOverlap.Parameters.Add("@NewCheckOut", SqlDbType.DateTime2).Value = newBooking.CheckOutDate;
+
+                    if (Convert.ToInt32(cmdOverlap.ExecuteScalar()) > 0)
+                    {
+                        throw new InvalidOperationException($"Phòng {roomNumber} đã có đơn đặt trùng lịch trong khoảng thời gian này!");
+                    }
+                }
+
+                // 4. Giữ nguyên đơn giá 0đ hợp lệ và tính Subtotal từng phòng
+                decimal subtotal = pricePerNight * nights;
+                details.Add(new BookingDetail
+                {
+                    RoomId = roomId,
+                    PricePerNight = pricePerNight,
+                    NumberOfNights = nights,
+                    Subtotal = subtotal
+                });
+            }
+
+            // 5. Tổng tiền đơn bằng tổng BookingDetails.Subtotal
+            decimal totalAmount = details.Sum(d => d.Subtotal);
+
+            const string queryBooking = @"
+				INSERT INTO dbo.Bookings (CustomerId, BookingDate, CheckInDate, CheckOutDate, Status, TotalAmount, CreatedBy, CreatedAt)
+				OUTPUT INSERTED.BookingId
+				VALUES (@CustomerId, GETDATE(), @CheckIn, @CheckOut, 'PENDING', @TotalAmount, @CreatedBy, GETDATE());";
+
+            using (var cmd = new SqlCommand(queryBooking, conn, transaction))
+            {
+                cmd.Parameters.Add("@CustomerId", SqlDbType.Int).Value = newBooking.CustomerId;
+                cmd.Parameters.Add("@CheckIn", SqlDbType.DateTime2).Value = newBooking.CheckInDate;
+                cmd.Parameters.Add("@CheckOut", SqlDbType.DateTime2).Value = newBooking.CheckOutDate;
+                cmd.Parameters.Add("@TotalAmount", SqlDbType.Decimal).Value = totalAmount;
+                cmd.Parameters.Add("@CreatedBy", SqlDbType.Int).Value = newBooking.CreatedBy;
+
+                newBooking.BookingId = Convert.ToInt32(cmd.ExecuteScalar());
+                newBooking.Status = "PENDING";
+                newBooking.TotalAmount = totalAmount;
+                newBooking.BookingDetails = details;
+            }
+
+            const string queryDetail = @"
+				INSERT INTO dbo.BookingDetails (BookingId, RoomId, PricePerNight, NumberOfNights, Subtotal)
+				VALUES (@BookingId, @RoomId, @PricePerNight, @NumberOfNights, @Subtotal);";
+
+            foreach (var detail in details)
+            {
+                detail.BookingId = newBooking.BookingId;
+                using var cmdDetail = new SqlCommand(queryDetail, conn, transaction);
+                cmdDetail.Parameters.Add("@BookingId", SqlDbType.Int).Value = newBooking.BookingId;
+                cmdDetail.Parameters.Add("@RoomId", SqlDbType.Int).Value = detail.RoomId;
+                cmdDetail.Parameters.Add("@PricePerNight", SqlDbType.Decimal).Value = detail.PricePerNight;
+                cmdDetail.Parameters.Add("@NumberOfNights", SqlDbType.Int).Value = detail.NumberOfNights;
+                cmdDetail.Parameters.Add("@Subtotal", SqlDbType.Decimal).Value = detail.Subtotal;
+                cmdDetail.ExecuteNonQuery();
+            }
+
+            transaction.Commit();
+            return newBooking;
+        }
+        catch
+        {
+            transaction.Rollback();
+            throw;
+        }
+    }
+
+    public bool Update(Booking booking)
 	{
 		if (booking == null) throw new ArgumentNullException(nameof(booking));
 
@@ -304,7 +498,7 @@ public class BookingRepository : IBookingRepository
 		using var command = new SqlCommand(query, connection);
 
 		command.Parameters.Add("@BookingId", SqlDbType.Int).Value = bookingId;
-		command.Parameters.Add("@Status", SqlDbType.VarChar, 20).Value = newStatus;
+		command.Parameters.Add("@Status", SqlDbType.VarChar, 20).Value = newStatus.Trim().ToUpperInvariant();
 
 		connection.Open();
 		return command.ExecuteNonQuery() > 0;
@@ -390,72 +584,72 @@ public class BookingRepository : IBookingRepository
 		}
 	}
 
-	private static Booking MapReaderToBooking(SqlDataReader reader)
-	{
-		var booking = new Booking
-		{
-			BookingId = reader.GetInt32(reader.GetOrdinal("BookingId")),
-			CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
-			BookingDate = reader.GetDateTime(reader.GetOrdinal("BookingDate")),
-			CheckInDate = reader.GetDateTime(reader.GetOrdinal("CheckInDate")),
-			CheckOutDate = reader.GetDateTime(reader.GetOrdinal("CheckOutDate")),
-			Status = reader.GetString(reader.GetOrdinal("Status")),
-			TotalAmount = reader.GetDecimal(reader.GetOrdinal("TotalAmount")),
-			CreatedBy = reader.GetInt32(reader.GetOrdinal("CreatedBy")),
-			CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt")),
-			Customer = new Customer
-			{
-				CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
-				FullName = reader.GetString(reader.GetOrdinal("CustomerName")),
-				Phone = reader.GetString(reader.GetOrdinal("CustomerPhone")),
-				IdentityNumber = reader.GetString(reader.GetOrdinal("CustomerIdentity"))
-			}
-		};
+    private static Booking MapReaderToBooking(SqlDataReader reader)
+    {
+        var booking = new Booking
+        {
+            BookingId = reader.GetInt32(reader.GetOrdinal("BookingId")),
+            CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
+            BookingDate = reader.GetDateTime(reader.GetOrdinal("BookingDate")),
+            CheckInDate = reader.GetDateTime(reader.GetOrdinal("CheckInDate")),
+            CheckOutDate = reader.GetDateTime(reader.GetOrdinal("CheckOutDate")),
+            Status = reader.GetString(reader.GetOrdinal("Status")),
+            TotalAmount = reader.GetDecimal(reader.GetOrdinal("TotalAmount")),
+            CreatedBy = reader.GetInt32(reader.GetOrdinal("CreatedBy")),
+            CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt")),
+            Customer = new Customer
+            {
+                CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
+                FullName = reader.GetString(reader.GetOrdinal("CustomerName")),
+                Phone = reader.GetString(reader.GetOrdinal("CustomerPhone")),
+                IdentityNumber = reader.GetString(reader.GetOrdinal("CustomerIdentity"))
+            }
+        };
 
-		if (!reader.IsDBNull(reader.GetOrdinal("StaffName")))
-		{
-			booking.CreatedByUser = new User
-			{
-				UserId = booking.CreatedBy,
-				FullName = reader.GetString(reader.GetOrdinal("StaffName")),
-				Username = reader.IsDBNull(reader.GetOrdinal("StaffUsername")) ? string.Empty : reader.GetString(reader.GetOrdinal("StaffUsername"))
-			};
-		}
+        if (!reader.IsDBNull(reader.GetOrdinal("StaffName")))
+        {
+            booking.CreatedByUser = new User
+            {
+                UserId = booking.CreatedBy,
+                FullName = reader.GetString(reader.GetOrdinal("StaffName")),
+                Username = reader.IsDBNull(reader.GetOrdinal("StaffUsername")) ? string.Empty : reader.GetString(reader.GetOrdinal("StaffUsername"))
+            };
+        }
 
-		return booking;
-	}
+        return booking;
+    }
 
-	private static BookingDetail MapReaderToBookingDetail(SqlDataReader reader, Booking? parentBooking = null)
-	{
-		var roomType = new RoomType
-		{
-			RoomTypeId = reader.GetInt32(reader.GetOrdinal("RoomTypeId")),
-			Name = reader.GetString(reader.GetOrdinal("RoomTypeName")),
-			Capacity = reader.GetInt32(reader.GetOrdinal("Capacity")),
-			PricePerNight = reader.GetDecimal(reader.GetOrdinal("StandardPricePerNight"))
-		};
+    private static BookingDetail MapReaderToBookingDetail(SqlDataReader reader, Booking? parentBooking = null)
+    {
+        var roomType = new RoomType
+        {
+            RoomTypeId = reader.GetInt32(reader.GetOrdinal("RoomTypeId")),
+            Name = reader.GetString(reader.GetOrdinal("RoomTypeName")),
+            Capacity = reader.GetInt32(reader.GetOrdinal("Capacity")),
+            PricePerNight = reader.GetDecimal(reader.GetOrdinal("StandardPricePerNight"))
+        };
 
-		var room = new Room
-		{
-			RoomId = reader.GetInt32(reader.GetOrdinal("RoomId")),
-			RoomNumber = reader.GetString(reader.GetOrdinal("RoomNumber")),
-			RoomTypeId = roomType.RoomTypeId,
-			Floor = reader.GetInt32(reader.GetOrdinal("Floor")),
-			Status = reader.GetString(reader.GetOrdinal("RoomStatus")),
-			Description = reader.IsDBNull(reader.GetOrdinal("RoomDescription")) ? null : reader.GetString(reader.GetOrdinal("RoomDescription")),
-			RoomType = roomType
-		};
+        var room = new Room
+        {
+            RoomId = reader.GetInt32(reader.GetOrdinal("RoomId")),
+            RoomNumber = reader.GetString(reader.GetOrdinal("RoomNumber")),
+            RoomTypeId = roomType.RoomTypeId,
+            Floor = reader.GetInt32(reader.GetOrdinal("Floor")),
+            Status = reader.GetString(reader.GetOrdinal("RoomStatus")),
+            Description = reader.IsDBNull(reader.GetOrdinal("RoomDescription")) ? null : reader.GetString(reader.GetOrdinal("RoomDescription")),
+            RoomType = roomType
+        };
 
-		return new BookingDetail
-		{
-			BookingDetailId = reader.GetInt32(reader.GetOrdinal("BookingDetailId")),
-			BookingId = reader.GetInt32(reader.GetOrdinal("BookingId")),
-			RoomId = room.RoomId,
-			PricePerNight = reader.GetDecimal(reader.GetOrdinal("PricePerNight")),
-			NumberOfNights = reader.GetInt32(reader.GetOrdinal("NumberOfNights")),
-			Subtotal = reader.GetDecimal(reader.GetOrdinal("Subtotal")),
-			Booking = parentBooking,
-			Room = room
-		};
-	}
+        return new BookingDetail
+        {
+            BookingDetailId = reader.GetInt32(reader.GetOrdinal("BookingDetailId")),
+            BookingId = reader.GetInt32(reader.GetOrdinal("BookingId")),
+            RoomId = room.RoomId,
+            PricePerNight = reader.GetDecimal(reader.GetOrdinal("PricePerNight")),
+            NumberOfNights = reader.GetInt32(reader.GetOrdinal("NumberOfNights")),
+            Subtotal = reader.GetDecimal(reader.GetOrdinal("Subtotal")),
+            Booking = parentBooking,
+            Room = room
+        };
+    }
 }

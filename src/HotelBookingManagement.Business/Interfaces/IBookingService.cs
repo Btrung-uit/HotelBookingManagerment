@@ -16,9 +16,10 @@ namespace HotelBookingManagement.Business.Interfaces
         decimal EstimateBookingCost(List<int> roomIds, DateTime checkInDate, DateTime checkOutDate);
 
         // 4.  Task BOOK06: Tạo và lưu booking 
-        Booking CreateBooking(Booking newBooking, List<int> selectedRoomIds);
+        Booking? CreateBooking(Booking newBooking, List<int> selectedRoomIds);
 
         // 5. Task BOOK07: Hủy booking
-        bool CancelBooking(int bookingId);
+        bool CancelBooking(int bookingId, out string errorMessage);
+        IEnumerable<Booking> GetAll();
     }
 }
