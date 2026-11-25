@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -10,8 +10,8 @@ using HotelBookingManagement.Models;
 namespace HotelBookingManagement.Data.Repositories;
 
 /// <summary>
-/// CÃ i Ä‘áº·t truy xuáº¥t dá»¯ liá»‡u cho báº£ng dbo.Bookings vÃ  dbo.BookingDetails báº±ng ADO.NET thuáº§n.
-/// Phá»¥c vá»¥ tra cá»©u lá»‹ch sá»­ Ä‘áº·t phÃ²ng khÃ¡ch hÃ ng (CUS05) vÃ  luá»“ng nghiá»‡p vá»¥ Booking.
+/// Cài đặt truy xuất dữ liệu cho bảng dbo.Bookings và dbo.BookingDetails bằng ADO.NET thuần.
+/// Phục vụ tra cứu lịch sử đặt phòng khách hàng (CUS05) và luồng nghiệp vụ Booking.
 /// </summary>
 public class BookingRepository : IBookingRepository
 {
@@ -19,7 +19,7 @@ public class BookingRepository : IBookingRepository
 	{
 		var list = new List<Booking>();
 		const string query = @"
-			SELECT b.BookingId, b.CustomerId, b.BookingDate, b.CheckInDate, b.CheckOutDate,
+			SELECT b.BookingId, b.CustomerId, b.BookingDate, b.CheckInDate, b.CheckOutDate, 
 			       b.Status, b.TotalAmount, b.CreatedBy, b.CreatedAt,
 			       c.FullName AS CustomerName, c.Phone AS CustomerPhone, c.IdentityNumber AS CustomerIdentity,
 			       u.FullName AS StaffName, u.Username AS StaffUsername
@@ -40,7 +40,7 @@ public class BookingRepository : IBookingRepository
 			}
 		}
 
-		// Náº¡p chi tiáº¿t phÃ²ng cho danh sÃ¡ch bookings
+		// Nạp chi tiết phòng cho danh sách bookings
 		foreach (var booking in list)
 		{
 			PopulateBookingRelations(booking, connection);
@@ -52,7 +52,7 @@ public class BookingRepository : IBookingRepository
 	public Booking? GetById(int bookingId)
 	{
 		const string query = @"
-			SELECT b.BookingId, b.CustomerId, b.BookingDate, b.CheckInDate, b.CheckOutDate,
+			SELECT b.BookingId, b.CustomerId, b.BookingDate, b.CheckInDate, b.CheckOutDate, 
 			       b.Status, b.TotalAmount, b.CreatedBy, b.CreatedAt,
 			       c.FullName AS CustomerName, c.Phone AS CustomerPhone, c.IdentityNumber AS CustomerIdentity,
 			       u.FullName AS StaffName, u.Username AS StaffUsername
@@ -80,14 +80,14 @@ public class BookingRepository : IBookingRepository
 	}
 
 	/// <summary>
-	/// Láº¥y lá»‹ch sá»­ Ä‘áº·t phÃ²ng cá»§a má»™t khÃ¡ch hÃ ng (Nhiá»‡m vá»¥ CUS05)
-	/// Tráº£ vá» toÃ n bá»™ danh sÃ¡ch Ä‘Æ¡n Ä‘áº·t phÃ²ng kÃ¨m chi tiáº¿t phÃ²ng (RoomNumber, RoomType) vÃ  cÃ¡c Ä‘á»£t thanh toÃ¡n.
+	/// Lấy lịch sử đặt phòng của một khách hàng (Nhiệm vụ CUS05)
+	/// Trả về toàn bộ danh sách đơn đặt phòng kèm chi tiết phòng (RoomNumber, RoomType) và các đợt thanh toán.
 	/// </summary>
 	public IEnumerable<Booking> GetByCustomerId(int customerId)
 	{
 		var list = new List<Booking>();
 		const string query = @"
-			SELECT b.BookingId, b.CustomerId, b.BookingDate, b.CheckInDate, b.CheckOutDate,
+			SELECT b.BookingId, b.CustomerId, b.BookingDate, b.CheckInDate, b.CheckOutDate, 
 			       b.Status, b.TotalAmount, b.CreatedBy, b.CreatedAt,
 			       c.FullName AS CustomerName, c.Phone AS CustomerPhone, c.IdentityNumber AS CustomerIdentity,
 			       u.FullName AS StaffName, u.Username AS StaffUsername
@@ -110,7 +110,7 @@ public class BookingRepository : IBookingRepository
 			}
 		}
 
-		// Náº¡p danh sÃ¡ch phÃ²ng chi tiáº¿t vÃ  lá»‹ch sá»­ thanh toÃ¡n cho tá»«ng Ä‘Æ¡n Ä‘áº·t phÃ²ng
+		// Nạp danh sách phòng chi tiết và lịch sử thanh toán cho từng đơn đặt phòng
 		foreach (var booking in list)
 		{
 			PopulateBookingRelations(booking, connection);
@@ -123,7 +123,7 @@ public class BookingRepository : IBookingRepository
 	{
 		var list = new List<Booking>();
 		const string query = @"
-			SELECT b.BookingId, b.CustomerId, b.BookingDate, b.CheckInDate, b.CheckOutDate,
+			SELECT b.BookingId, b.CustomerId, b.BookingDate, b.CheckInDate, b.CheckOutDate, 
 			       b.Status, b.TotalAmount, b.CreatedBy, b.CreatedAt,
 			       c.FullName AS CustomerName, c.Phone AS CustomerPhone, c.IdentityNumber AS CustomerIdentity,
 			       u.FullName AS StaffName, u.Username AS StaffUsername
@@ -186,7 +186,7 @@ public class BookingRepository : IBookingRepository
 			SELECT DISTINCT d.RoomId
 			FROM dbo.Bookings b
 			INNER JOIN dbo.BookingDetails d ON b.BookingId = d.BookingId
-			WHERE b.Status != 'CANCELLED'
+			WHERE b.Status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN')
 			  AND b.CheckInDate < @NewCheckOut
 			  AND b.CheckOutDate > @NewCheckIn
 			  AND (@ExcludeBookingId IS NULL OR b.BookingId != @ExcludeBookingId);";
@@ -218,11 +218,11 @@ public class BookingRepository : IBookingRepository
         if (booking == null) throw new ArgumentNullException(nameof(booking));
         if (details == null || details.Count == 0)
         {
-            throw new ArgumentException("ÄÆ¡n Ä‘áº·t phÃ²ng báº¯t buá»™c pháº£i cÃ³ Ã­t nháº¥t má»™t phÃ²ng chi tiáº¿t!", nameof(details));
+            throw new ArgumentException("Đơn đặt phòng bắt buộc phải có ít nhất một phòng chi tiết!", nameof(details));
         }
         if (booking.CreatedBy <= 0)
         {
-            throw new ArgumentException("KhÃ´ng xÃ¡c Ä‘á»‹nh Ä‘Æ°á»£c nhÃ¢n viÃªn táº¡o Ä‘Æ¡n Ä‘áº·t phÃ²ng!", nameof(booking));
+            throw new ArgumentException("Không xác định được nhân viên tạo đơn đặt phòng!", nameof(booking));
         }
 
         using var connection = DatabaseConnection.GetConnection();
@@ -256,7 +256,7 @@ public class BookingRepository : IBookingRepository
                     using var reader = cmdRoom.ExecuteReader();
                     if (!reader.Read())
                     {
-                        throw new InvalidOperationException($"KhÃ´ng tÃ¬m tháº¥y phÃ²ng mÃ£ #{roomId}!");
+                        throw new InvalidOperationException($"Không tìm thấy phòng mã #{roomId}!");
                     }
                     roomNumber = reader.GetString(0);
                     roomStatus = reader.GetString(1).Trim().ToUpperInvariant();
@@ -264,7 +264,7 @@ public class BookingRepository : IBookingRepository
 
                 if (roomStatus == "MAINTENANCE" || roomStatus == "OCCUPIED")
                 {
-                    throw new InvalidOperationException($"PhÃ²ng {roomNumber} hiá»‡n Ä‘ang á»Ÿ tráº¡ng thÃ¡i {roomStatus}, khÃ´ng thá»ƒ Ä‘áº·t!");
+                    throw new InvalidOperationException($"Phòng {roomNumber} hiện đang ở trạng thái {roomStatus}, không thể đặt!");
                 }
 
                 using (var cmdOverlap = new SqlCommand(overlapSql, connection, transaction))
@@ -275,7 +275,7 @@ public class BookingRepository : IBookingRepository
 
                     if (Convert.ToInt32(cmdOverlap.ExecuteScalar()) > 0)
                     {
-                        throw new InvalidOperationException($"PhÃ²ng {roomNumber} Ä‘Ã£ cÃ³ Ä‘Æ¡n Ä‘áº·t trÃ¹ng lá»‹ch trong khoáº£ng thá»i gian nÃ y!");
+                        throw new InvalidOperationException($"Phòng {roomNumber} đã có đơn đặt trùng lịch trong khoảng thời gian này!");
                     }
                 }
             }
@@ -327,7 +327,7 @@ public class BookingRepository : IBookingRepository
     }
 
     /// <summary>
-    /// Táº¡o Booking kÃ¨m BookingDetails trong cÃ¹ng SqlTransaction cÃ³ khÃ³a theo phÃ²ng (UPDLOCK, ROWLOCK).
+    /// Tạo Booking kèm BookingDetails trong cùng SqlTransaction có khóa theo phòng (UPDLOCK, ROWLOCK).
     /// </summary>
     public Booking? CreateBooking(Booking newBooking, List<int> selectedRoomIds)
     {
@@ -335,7 +335,7 @@ public class BookingRepository : IBookingRepository
             return null;
 
         if (newBooking.CreatedBy <= 0)
-            throw new InvalidOperationException("KhÃ´ng xÃ¡c Ä‘á»‹nh Ä‘Æ°á»£c nhÃ¢n viÃªn táº¡o Ä‘Æ¡n Ä‘áº·t phÃ²ng!");
+            throw new InvalidOperationException("Không xác định được nhân viên tạo đơn đặt phòng!");
 
         var distinctRoomIds = selectedRoomIds.Distinct().OrderBy(id => id).ToList();
 
@@ -369,14 +369,14 @@ public class BookingRepository : IBookingRepository
                 string roomStatus;
                 decimal pricePerNight;
 
-                // 1. KhÃ³a dÃ²ng phÃ²ng theo RoomId vÃ  Ä‘á»c tráº¡ng thÃ¡i + Ä‘Æ¡n giÃ¡ thá»±c táº¿ tá»« DB
+                // 1. Khóa dòng phòng theo RoomId và đọc trạng thái + đơn giá thực tế từ DB
                 using (var cmdRoom = new SqlCommand(lockRoomAndPriceQuery, conn, transaction))
                 {
                     cmdRoom.Parameters.Add("@RoomId", SqlDbType.Int).Value = roomId;
                     using var reader = cmdRoom.ExecuteReader();
                     if (!reader.Read())
                     {
-                        throw new InvalidOperationException($"KhÃ´ng tÃ¬m tháº¥y phÃ²ng mÃ£ #{roomId} trong há»‡ thá»‘ng!");
+                        throw new InvalidOperationException($"Không tìm thấy phòng mã #{roomId} trong hệ thống!");
                     }
 
                     roomNumber = reader.GetString(0);
@@ -384,13 +384,13 @@ public class BookingRepository : IBookingRepository
                     pricePerNight = reader.GetDecimal(2);
                 }
 
-                // 2. Cháº·n phÃ²ng vá»«a chuyá»ƒn sang MAINTENANCE hoáº·c OCCUPIED
+                // 2. Chặn phòng vừa chuyển sang MAINTENANCE hoặc OCCUPIED
                 if (roomStatus == "MAINTENANCE" || roomStatus == "OCCUPIED")
                 {
-                    throw new InvalidOperationException($"PhÃ²ng {roomNumber} hiá»‡n Ä‘ang á»Ÿ tráº¡ng thÃ¡i {roomStatus}, khÃ´ng thá»ƒ Ä‘áº·t!");
+                    throw new InvalidOperationException($"Phòng {roomNumber} hiện đang ở trạng thái {roomStatus}, không thể đặt!");
                 }
 
-                // 3. Cháº·n trÃ¹ng lá»‹ch Ä‘áº·t trong cÃ¹ng transaction sau khi Ä‘Ã£ giá»¯ khÃ³a phÃ²ng
+                // 3. Chặn trùng lịch đặt trong cùng transaction sau khi đã giữ khóa phòng
                 using (var cmdOverlap = new SqlCommand(overlapCheckQuery, conn, transaction))
                 {
                     cmdOverlap.Parameters.Add("@RoomId", SqlDbType.Int).Value = roomId;
@@ -399,11 +399,11 @@ public class BookingRepository : IBookingRepository
 
                     if (Convert.ToInt32(cmdOverlap.ExecuteScalar()) > 0)
                     {
-                        throw new InvalidOperationException($"PhÃ²ng {roomNumber} Ä‘Ã£ cÃ³ Ä‘Æ¡n Ä‘áº·t trÃ¹ng lá»‹ch trong khoáº£ng thá»i gian nÃ y!");
+                        throw new InvalidOperationException($"Phòng {roomNumber} đã có đơn đặt trùng lịch trong khoảng thời gian này!");
                     }
                 }
 
-                // 4. Giá»¯ nguyÃªn Ä‘Æ¡n giÃ¡ 0Ä‘ há»£p lá»‡ vÃ  tÃ­nh Subtotal tá»«ng phÃ²ng
+                // 4. Giữ nguyên đơn giá 0đ hợp lệ và tính Subtotal từng phòng
                 decimal subtotal = pricePerNight * nights;
                 details.Add(new BookingDetail
                 {
@@ -414,7 +414,7 @@ public class BookingRepository : IBookingRepository
                 });
             }
 
-            // 5. Tá»•ng tiá»n Ä‘Æ¡n báº±ng tá»•ng BookingDetails.Subtotal
+            // 5. Tổng tiền đơn bằng tổng BookingDetails.Subtotal
             decimal totalAmount = details.Sum(d => d.Subtotal);
 
             const string queryBooking = @"
@@ -531,11 +531,11 @@ public class BookingRepository : IBookingRepository
 	}
 
 	/// <summary>
-	/// Náº¡p chi tiáº¿t phÃ²ng vÃ  cÃ¡c Ä‘á»£t thanh toÃ¡n cho Ä‘Æ¡n Ä‘áº·t phÃ²ng
+	/// Nạp chi tiết phòng và các đợt thanh toán cho đơn đặt phòng
 	/// </summary>
 	private void PopulateBookingRelations(Booking booking, SqlConnection connection)
 	{
-		// 1. Náº¡p chi tiáº¿t cÃ¡c phÃ²ng Ä‘áº·t
+		// 1. Nạp chi tiết các phòng đặt
 		const string queryDetails = @"
 			SELECT bd.BookingDetailId, bd.BookingId, bd.RoomId, bd.PricePerNight, bd.NumberOfNights, bd.Subtotal,
 			       r.RoomNumber, r.Floor, r.Status AS RoomStatus, r.Description AS RoomDescription,
@@ -556,7 +556,7 @@ public class BookingRepository : IBookingRepository
 			}
 		}
 
-		// 2. Náº¡p lá»‹ch sá»­ thanh toÃ¡n
+		// 2. Nạp lịch sử thanh toán
 		const string queryPayments = @"
 			SELECT PaymentId, BookingId, Amount, PaymentMethod, PaymentDate, Status
 			FROM dbo.Payments
