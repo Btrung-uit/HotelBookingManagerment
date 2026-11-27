@@ -190,6 +190,7 @@ namespace HotelBookingManagement.Forms
             }
             catch (Exception ex)
             {
+                ClearRoomSelectionForNewDates();
                 MessageBox.Show("Không thể tải danh sách phòng trống: " + ex.Message, "Lỗi CSDL", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -391,10 +392,10 @@ namespace HotelBookingManagement.Forms
                 if (!countedRoomIds.Add(roomId))
                     continue;
 
-                if (row.Cells["PricePerNight"]?.Value != null &&
-                    row.Cells["PricePerNight"].Value != DBNull.Value &&
-                    decimal.TryParse(row.Cells["PricePerNight"].Value.ToString(), out decimal pricePerNight))
+                object? rawPrice = row.Cells["PricePerNight"]?.Value;
+                if (rawPrice != null && rawPrice != DBNull.Value)
                 {
+                    decimal pricePerNight = rawPrice is decimal d ? d : Convert.ToDecimal(rawPrice);
                     totalPricePerNight += pricePerNight;
                 }
             }
