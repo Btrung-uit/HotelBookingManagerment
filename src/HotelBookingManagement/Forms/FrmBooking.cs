@@ -32,7 +32,7 @@ namespace HotelBookingManagement.Forms
 
             dtpCheckIn.ValueChanged += ValidateBookingDates;
             dtpCheckOut.ValueChanged += ValidateBookingDates;
-
+           
             // Xóa khách đã chọn nếu người dùng sửa lại SĐT hoặc CCCD
             txtSDT.TextChanged += CustomerInput_TextChanged;
             txtCCCD.TextChanged += CustomerInput_TextChanged;
@@ -41,10 +41,13 @@ namespace HotelBookingManagement.Forms
             dgvDanhSachPhong.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvDanhSachPhong.MultiSelect = true;
 
+            // [TASK BOOK08] Tự động tính ước tính giá khi chọn hoặc bỏ chọn phòng
+            dgvDanhSachPhong.SelectionChanged += (s, args) => UpdateEstimatedCost();
+
             // Tải luôn danh sách phòng trống cho ngày mặc định
             LoadAvailableRooms();
+            UpdateEstimatedCost();
         }
-
         private void CustomerInput_TextChanged(object? sender, EventArgs e)
         {
             if (_currentCustomerId > 0 && _currentCustomer != null)
@@ -123,6 +126,7 @@ namespace HotelBookingManagement.Forms
                 dtpCheckIn.ValueChanged -= ValidateBookingDates;
                 dtpCheckIn.Value = DateTime.Today;
                 dtpCheckIn.ValueChanged += ValidateBookingDates;
+                UpdateEstimatedCost();
                 return;
             }
 
@@ -134,6 +138,7 @@ namespace HotelBookingManagement.Forms
                 dtpCheckOut.Value = checkIn.AddDays(1);
                 dtpCheckOut.ValueChanged += ValidateBookingDates;
             }
+            UpdateEstimatedCost(); 
         }
 
         private void LoadAvailableRooms()
@@ -169,6 +174,7 @@ namespace HotelBookingManagement.Forms
                 }
                 if (dgvDanhSachPhong.Columns["Floor"] != null) dgvDanhSachPhong.Columns["Floor"]!.HeaderText = "Tầng";
                 if (dgvDanhSachPhong.Columns["Status"] != null) dgvDanhSachPhong.Columns["Status"]!.HeaderText = "Trạng Thái";
+                UpdateEstimatedCost();
             }
             catch (Exception ex)
             {
@@ -338,5 +344,42 @@ namespace HotelBookingManagement.Forms
         private void dgvDanhSachPhong_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
         }
+        // ==========================================
+        // TASK BOOK08: ƯỚC TÍNH GIÁ BOOKING
+        // ==========================================
+        private void UpdateEstimatedCost()
+        {
+            if (lblUocTinhGia == null)
+                return;
+
+            var selectedRoomIds = new List<int>();
+            foreach (DataGridViewRow row in dgvDanhSachPhong.SelectedRows)
+            {
+                if (row.Cells["RoomId"]?.Value == null)
+                    continue;
+
+                int roomId = Convert.ToInt32(row.Cells["RoomId"].Value);
+                if (!selectedRoomIds.Contains(roomId))
+                {
+                    selectedRoomIds.Add(roomId);
+                }
+            }
+
+            DateTime checkIn = dtpCheckIn.Value.Date;
+            DateTime checkOut = dtpCheckOut.Value.Date;
+
+            if (selectedRoomIds.Count == 0 || checkOut <= checkIn)
+            {
+                lblUocTinhGia.Text = "Ước tính giá: 0 VNĐ";
+                return;
+            }
+
+            int nights = Math.Max(1, (checkOut - checkIn).Days);
+            decimal estimatedCost = _bookingService.EstimateBookingCost(selectedRoomIds, checkIn, checkOut);
+
+            lblUocTinhGia.Text = $"Ước tính giá ({selectedRoomIds.Count} phòng × {nights} đêm): {estimatedCost:N0} VNĐ";
+        }
+
     }
+
 }
