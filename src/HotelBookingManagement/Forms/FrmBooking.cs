@@ -15,6 +15,7 @@ namespace HotelBookingManagement.Forms
         private readonly BookingService _bookingService;
         private int _currentCustomerId = -1;
         private Customer? _currentCustomer;
+        private bool _isRoomListFresh = false;
 
         public FrmBooking()
         {
@@ -26,8 +27,10 @@ namespace HotelBookingManagement.Forms
 
         private void FrmBooking_Load(object sender, EventArgs e)
         {
-            // [TASK BOOK03] Thiết lập mặc định ngày khi mở Form
+            // [TASK BOOK03] Thiết lập mặc định ngày và khóa ngày quá khứ
+            dtpCheckIn.MinDate = DateTime.Today;
             dtpCheckIn.Value = DateTime.Today;
+            dtpCheckOut.MinDate = DateTime.Today.AddDays(1);
             dtpCheckOut.Value = DateTime.Today.AddDays(1);
 
             dtpCheckIn.ValueChanged += ValidateBookingDates;
@@ -41,10 +44,16 @@ namespace HotelBookingManagement.Forms
             dgvDanhSachPhong.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvDanhSachPhong.MultiSelect = true;
 
+            // [TASK BOOK08] Tự động tính ước tính giá khi chọn hoặc bỏ chọn phòng
+            dgvDanhSachPhong.SelectionChanged += (s, args) => UpdateEstimatedCost();
+
+            // Nạp danh sách loại phòng vào ComboBox lọc
+            LoadRoomTypesComboBox();
+            cmbLoaiPhong.SelectedIndexChanged += (s, args) => ClearRoomSelectionForNewDates();
+
             // Tải luôn danh sách phòng trống cho ngày mặc định
             LoadAvailableRooms();
         }
-
         private void CustomerInput_TextChanged(object? sender, EventArgs e)
         {
             if (_currentCustomerId > 0 && _currentCustomer != null)
@@ -107,6 +116,16 @@ namespace HotelBookingManagement.Forms
                 txtHoTen.Focus();
             }
         }
+        private void ClearRoomSelectionForNewDates()
+        {
+            _isRoomListFresh = false;
+            dgvDanhSachPhong.ClearSelection();
+            dgvDanhSachPhong.DataSource = null;
+            if (lblUocTinhGia != null)
+            {
+                lblUocTinhGia.Text = "Ước tính giá: 0 VNĐ";
+            }
+        }
 
         // ==========================================
         // TASK BOOK03: KIỂM TRA NGÀY HỢP LỆ
@@ -114,7 +133,6 @@ namespace HotelBookingManagement.Forms
         private void ValidateBookingDates(object? sender, EventArgs e)
         {
             DateTime checkIn = dtpCheckIn.Value.Date;
-            DateTime checkOut = dtpCheckOut.Value.Date;
 
             if (checkIn < DateTime.Today)
             {
@@ -123,19 +141,58 @@ namespace HotelBookingManagement.Forms
                 dtpCheckIn.ValueChanged -= ValidateBookingDates;
                 dtpCheckIn.Value = DateTime.Today;
                 dtpCheckIn.ValueChanged += ValidateBookingDates;
-                return;
+                checkIn = DateTime.Today;
             }
 
-            if (checkOut <= checkIn)
+            dtpCheckOut.ValueChanged -= ValidateBookingDates;
+            dtpCheckOut.MinDate = checkIn.AddDays(1);
+            if (dtpCheckOut.Value.Date <= checkIn)
             {
-                MessageBox.Show("Ngày Check-out phải sau ngày Check-in ít nhất 1 ngày!", "Lỗi thời gian", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-                dtpCheckOut.ValueChanged -= ValidateBookingDates;
                 dtpCheckOut.Value = checkIn.AddDays(1);
-                dtpCheckOut.ValueChanged += ValidateBookingDates;
             }
+            dtpCheckOut.ValueChanged += ValidateBookingDates;
+
+            ClearRoomSelectionForNewDates();
         }
 
+        private void LoadRoomTypesComboBox()
+        {
+            try
+            {
+                var sampleRooms = _roomService.GetAvailableRoomsByDateRange(DateTime.Today, DateTime.Today.AddDays(365), null);
+                var roomTypes = sampleRooms
+                    .Where(r => r.RoomType != null)
+                    .Select(r => new { r.RoomType!.RoomTypeId, r.RoomType.Name })
+                    .Distinct()
+                    .OrderBy(rt => rt.Name)
+                    .ToList();
+
+                var items = new List<KeyValuePair<int, string>>
+                {
+                    new KeyValuePair<int, string>(0, "-- Tất cả loại phòng --")
+                };
+
+                foreach (var rt in roomTypes)
+                {
+                    items.Add(new KeyValuePair<int, string>(rt.RoomTypeId, rt.Name));
+                }
+
+                cmbLoaiPhong.DataSource = items;
+                cmbLoaiPhong.DisplayMember = "Value";
+                cmbLoaiPhong.ValueMember = "Key";
+                cmbLoaiPhong.SelectedIndex = 0;
+            }
+            catch
+            {
+                // Nếu mất kết nối lúc mở form, vẫn giữ option mặc định để tránh crash form
+                cmbLoaiPhong.DataSource = new List<KeyValuePair<int, string>>
+                {
+                    new KeyValuePair<int, string>(0, "-- Tất cả loại phòng --")
+                };
+                cmbLoaiPhong.DisplayMember = "Value";
+                cmbLoaiPhong.ValueMember = "Key";
+            }
+        }
         private void LoadAvailableRooms()
         {
             try
@@ -143,7 +200,13 @@ namespace HotelBookingManagement.Forms
                 DateTime checkIn = dtpCheckIn.Value.Date;
                 DateTime checkOut = dtpCheckOut.Value.Date;
 
-                var availableRooms = _roomService.GetAvailableRoomsByDateRange(checkIn, checkOut, null).ToList();
+                int? selectedRoomTypeId = null;
+                if (cmbLoaiPhong.SelectedValue is int typeId && typeId > 0)
+                {
+                    selectedRoomTypeId = typeId;
+                }
+
+                var availableRooms = _roomService.GetAvailableRoomsByDateRange(checkIn, checkOut, selectedRoomTypeId).ToList();
 
                 var displayList = availableRooms.Select(r => new
                 {
@@ -169,9 +232,12 @@ namespace HotelBookingManagement.Forms
                 }
                 if (dgvDanhSachPhong.Columns["Floor"] != null) dgvDanhSachPhong.Columns["Floor"]!.HeaderText = "Tầng";
                 if (dgvDanhSachPhong.Columns["Status"] != null) dgvDanhSachPhong.Columns["Status"]!.HeaderText = "Trạng Thái";
+                _isRoomListFresh = true;
+                UpdateEstimatedCost();
             }
             catch (Exception ex)
             {
+                ClearRoomSelectionForNewDates();
                 MessageBox.Show("Không thể tải danh sách phòng trống: " + ex.Message, "Lỗi CSDL", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -195,10 +261,16 @@ namespace HotelBookingManagement.Forms
                     MessageBox.Show("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại!", "Lỗi phiên làm việc", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
-
+                if (!_isRoomListFresh)
+                {
+                    MessageBox.Show("Khoảng ngày đặt phòng đã thay đổi. Vui lòng bấm 'Kiểm Tra Phòng Trống' và chọn lại phòng trước khi tạo booking!", "Yêu cầu kiểm tra phòng", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    btnKiemTraPhong.Focus();
+                    return;
+                }
                 // 1. Kiểm tra chọn phòng trên DataGridView
                 if (dgvDanhSachPhong.SelectedRows.Count == 0)
                 {
+                   
                     MessageBox.Show("Vui lòng chọn ít nhất một phòng từ danh sách!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
@@ -338,5 +410,55 @@ namespace HotelBookingManagement.Forms
         private void dgvDanhSachPhong_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
         }
+        // ==========================================
+        // TASK BOOK08: ƯỚC TÍNH GIÁ BOOKING
+        // ==========================================
+        private void UpdateEstimatedCost()
+        {
+            if (lblUocTinhGia == null)
+                return;
+
+            DateTime checkIn = dtpCheckIn.Value.Date;
+            DateTime checkOut = dtpCheckOut.Value.Date;
+
+            if (!_isRoomListFresh || checkOut <= checkIn || dgvDanhSachPhong.SelectedRows.Count == 0)
+            {
+                lblUocTinhGia.Text = "Ước tính giá: 0 VNĐ";
+                return;
+            }
+
+            var countedRoomIds = new HashSet<int>();
+            decimal totalPricePerNight = 0m;
+
+            foreach (DataGridViewRow row in dgvDanhSachPhong.SelectedRows)
+            {
+                if (row.Cells["RoomId"]?.Value == null || row.Cells["RoomId"].Value == DBNull.Value)
+                    continue;
+
+                int roomId = Convert.ToInt32(row.Cells["RoomId"].Value);
+                if (!countedRoomIds.Add(roomId))
+                    continue;
+
+                object? rawPrice = row.Cells["PricePerNight"]?.Value;
+                if (rawPrice != null && rawPrice != DBNull.Value)
+                {
+                    decimal pricePerNight = rawPrice is decimal d ? d : Convert.ToDecimal(rawPrice);
+                    totalPricePerNight += pricePerNight;
+                }
+            }
+
+            if (countedRoomIds.Count == 0)
+            {
+                lblUocTinhGia.Text = "Ước tính giá: 0 VNĐ";
+                return;
+            }
+
+            int nights = Math.Max(1, (checkOut - checkIn).Days);
+            decimal estimatedCost = totalPricePerNight * nights;
+
+            lblUocTinhGia.Text = $"Ước tính giá ({countedRoomIds.Count} phòng × {nights} đêm): {estimatedCost:N0} VNĐ";
+        }
+
     }
+
 }

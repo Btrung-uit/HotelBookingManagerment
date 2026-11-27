@@ -200,10 +200,11 @@
             // 
             // lblUocTinhGia
             // 
-            lblUocTinhGia.AutoSize = true;
-            lblUocTinhGia.Location = new Point(552, 344);
+            lblUocTinhGia.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            lblUocTinhGia.AutoEllipsis = true;
+            lblUocTinhGia.Location = new Point(411, 344);
             lblUocTinhGia.Name = "lblUocTinhGia";
-            lblUocTinhGia.Size = new Size(110, 15);
+            lblUocTinhGia.Size = new Size(365, 23);
             lblUocTinhGia.TabIndex = 6;
             lblUocTinhGia.Text = "Ước tính giá: 0 VNĐ";
             // 
