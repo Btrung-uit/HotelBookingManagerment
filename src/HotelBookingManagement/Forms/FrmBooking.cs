@@ -27,13 +27,15 @@ namespace HotelBookingManagement.Forms
 
         private void FrmBooking_Load(object sender, EventArgs e)
         {
-            // [TASK BOOK03] Thiết lập mặc định ngày khi mở Form
+            // [TASK BOOK03] Thiết lập mặc định ngày và khóa ngày quá khứ
+            dtpCheckIn.MinDate = DateTime.Today;
             dtpCheckIn.Value = DateTime.Today;
+            dtpCheckOut.MinDate = DateTime.Today.AddDays(1);
             dtpCheckOut.Value = DateTime.Today.AddDays(1);
 
             dtpCheckIn.ValueChanged += ValidateBookingDates;
             dtpCheckOut.ValueChanged += ValidateBookingDates;
-           
+
             // Xóa khách đã chọn nếu người dùng sửa lại SĐT hoặc CCCD
             txtSDT.TextChanged += CustomerInput_TextChanged;
             txtCCCD.TextChanged += CustomerInput_TextChanged;
@@ -45,9 +47,12 @@ namespace HotelBookingManagement.Forms
             // [TASK BOOK08] Tự động tính ước tính giá khi chọn hoặc bỏ chọn phòng
             dgvDanhSachPhong.SelectionChanged += (s, args) => UpdateEstimatedCost();
 
+            // Nạp danh sách loại phòng vào ComboBox lọc
+            LoadRoomTypesComboBox();
+            cmbLoaiPhong.SelectedIndexChanged += (s, args) => ClearRoomSelectionForNewDates();
+
             // Tải luôn danh sách phòng trống cho ngày mặc định
             LoadAvailableRooms();
-            UpdateEstimatedCost();
         }
         private void CustomerInput_TextChanged(object? sender, EventArgs e)
         {
@@ -128,7 +133,6 @@ namespace HotelBookingManagement.Forms
         private void ValidateBookingDates(object? sender, EventArgs e)
         {
             DateTime checkIn = dtpCheckIn.Value.Date;
-            DateTime checkOut = dtpCheckOut.Value.Date;
 
             if (checkIn < DateTime.Today)
             {
@@ -137,21 +141,58 @@ namespace HotelBookingManagement.Forms
                 dtpCheckIn.ValueChanged -= ValidateBookingDates;
                 dtpCheckIn.Value = DateTime.Today;
                 dtpCheckIn.ValueChanged += ValidateBookingDates;
-                ClearRoomSelectionForNewDates();
-                return;
+                checkIn = DateTime.Today;
             }
 
-            if (checkOut <= checkIn)
+            dtpCheckOut.ValueChanged -= ValidateBookingDates;
+            dtpCheckOut.MinDate = checkIn.AddDays(1);
+            if (dtpCheckOut.Value.Date <= checkIn)
             {
-                MessageBox.Show("Ngày Check-out phải sau ngày Check-in ít nhất 1 ngày!", "Lỗi thời gian", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-                dtpCheckOut.ValueChanged -= ValidateBookingDates;
                 dtpCheckOut.Value = checkIn.AddDays(1);
-                dtpCheckOut.ValueChanged += ValidateBookingDates;
             }
-            ClearRoomSelectionForNewDates();  
+            dtpCheckOut.ValueChanged += ValidateBookingDates;
+
+            ClearRoomSelectionForNewDates();
         }
 
+        private void LoadRoomTypesComboBox()
+        {
+            try
+            {
+                var sampleRooms = _roomService.GetAvailableRoomsByDateRange(DateTime.Today, DateTime.Today.AddDays(365), null);
+                var roomTypes = sampleRooms
+                    .Where(r => r.RoomType != null)
+                    .Select(r => new { r.RoomType!.RoomTypeId, r.RoomType.Name })
+                    .Distinct()
+                    .OrderBy(rt => rt.Name)
+                    .ToList();
+
+                var items = new List<KeyValuePair<int, string>>
+                {
+                    new KeyValuePair<int, string>(0, "-- Tất cả loại phòng --")
+                };
+
+                foreach (var rt in roomTypes)
+                {
+                    items.Add(new KeyValuePair<int, string>(rt.RoomTypeId, rt.Name));
+                }
+
+                cmbLoaiPhong.DataSource = items;
+                cmbLoaiPhong.DisplayMember = "Value";
+                cmbLoaiPhong.ValueMember = "Key";
+                cmbLoaiPhong.SelectedIndex = 0;
+            }
+            catch
+            {
+                // Nếu mất kết nối lúc mở form, vẫn giữ option mặc định để tránh crash form
+                cmbLoaiPhong.DataSource = new List<KeyValuePair<int, string>>
+                {
+                    new KeyValuePair<int, string>(0, "-- Tất cả loại phòng --")
+                };
+                cmbLoaiPhong.DisplayMember = "Value";
+                cmbLoaiPhong.ValueMember = "Key";
+            }
+        }
         private void LoadAvailableRooms()
         {
             try
@@ -159,7 +200,13 @@ namespace HotelBookingManagement.Forms
                 DateTime checkIn = dtpCheckIn.Value.Date;
                 DateTime checkOut = dtpCheckOut.Value.Date;
 
-                var availableRooms = _roomService.GetAvailableRoomsByDateRange(checkIn, checkOut, null).ToList();
+                int? selectedRoomTypeId = null;
+                if (cmbLoaiPhong.SelectedValue is int typeId && typeId > 0)
+                {
+                    selectedRoomTypeId = typeId;
+                }
+
+                var availableRooms = _roomService.GetAvailableRoomsByDateRange(checkIn, checkOut, selectedRoomTypeId).ToList();
 
                 var displayList = availableRooms.Select(r => new
                 {
